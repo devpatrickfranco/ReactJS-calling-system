@@ -1,0 +1,76 @@
+.container {
+    display: flex;
+    background-color: #f8f8f8;
+    border-radius: 5px;
+    padding: .8em;
+    align-items: center;
+    margin-bottom: 1em; 
+}
+
+.label-imgProfile {
+    width: 280px;
+    height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Centraliza horizontalmente o conteúdo */
+    flex-direction: column;
+    cursor: pointer;
+    position: relative; /* Necessário para centralizar o span */
+}
+
+.label-imgProfile input {
+    display: none;
+}
+
+.label-imgProfile span {
+    z-index: 99;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Centraliza o span */
+    opacity: 0.7;
+    transition: all 0.5s;
+}
+
+.label-imgProfile span:hover {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.4); /* Mantém a centralização no hover */
+}
+
+.form-profile img{
+    margin-bottom: 1em;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.form-profile label { 
+    margin-bottom: .5em;
+    font-size: 1.4em;
+}
+
+.form-profile input, textarea, select {
+    margin-bottom: 1em;
+    padding: .7em;
+    border: 0;
+    border-radius: 5px;
+    max-width: 600px;
+}
+
+.form-profile input:disabled{
+    cursor: not-allowed;
+}
+
+.form-profile button {
+    max-width: 600px;   
+}
+
+.logout-btn{
+    padding: 8px 20px;
+    background-color: transparent;
+    border: 1px solid #121212;
+    border-radius: 5px;
+    font-size: 1.5em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
