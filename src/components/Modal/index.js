@@ -28,7 +28,7 @@ export default function Modal({conteudo, close}){
                     </div>
                     <div className='row'>
                         <span>   
-                            Status: <a style={{ color: '#FFF', borderRadius: 5, backgroundColor: conteudo.status === 'aberto' ? '#5cb85c' : '#3583f6'   }}>{conteudo.status}</a>
+                            Status: <a style={{ color: '#FFF', borderRadius: 5, backgroundColor: conteudo.status === 'aberto' ? '#3583f6' : conteudo.status === 'atendimento' ? '#5cb85c' : '#d9534f'   }}>{conteudo.status}</a>
                         </span>
                     </div>
 

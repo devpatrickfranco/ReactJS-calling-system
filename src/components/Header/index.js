@@ -5,11 +5,10 @@ import avatar from  '../../assets/avatar.jpg'
 import { FiHome, FiUser, FiSettings } from "react-icons/fi";
 
 
-
 import { Link } from 'react-router-dom'
 
 export default function Header(){
-    const { user } = useContext(AuthenticateContext)
+    const { hasPermission, user } = useContext(AuthenticateContext)
     
     return(
         <div  className='sidebar'>
@@ -22,10 +21,12 @@ export default function Header(){
                 <FiHome color='#FFF' size={24} /> 
                 Chamados
             </Link>
-            <Link to='/customers'>
-                <FiUser color='#FFF' size={24} /> 
-                Clientes
-            </Link>
+            {user && hasPermission(user, 'Admin') && (
+                <Link to='/customers'>
+                    <FiUser color='#FFF' size={24} /> 
+                    Clientes
+                </Link>
+            )}
             <Link to='/profile'>
                 <FiSettings color='#FFF' size={24} /> 
                 Configurações

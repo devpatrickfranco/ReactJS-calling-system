@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect} from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { FiMessageSquare, FiPlus, FiSearch, FiEdit2 } from 'react-icons/fi'
@@ -11,7 +11,6 @@ import { dbFirebase } from '../../services/firebaseConnection'
 import './dashboard.css'
 
 const listRef = dbFirebase.firestore().collection('chamados').orderBy('created', 'desc')
-
 
 export default function Dashboard(){
     const [chamados, setChamados] = useState([])
@@ -62,6 +61,7 @@ export default function Dashboard(){
                 created: doc.data().created,
                 createdFormated: format(doc.data().created.toDate(), 'dd/MM/yyyy'),
                 status: doc.data().status,
+                prioridade: doc.data().prioridade,
                 complemento: doc.data().complemento,
             }));
     
@@ -136,6 +136,7 @@ export default function Dashboard(){
                                 <tr>
                                     <th scope='col'> Cliente </th>
                                     <th scope='col'> Assunto </th>
+                                    <th scope='col'> Prioridade </th>
                                     <th scope='col'> Status </th>
                                     <th scope='col'> Cadastrado em  </th>
                                     <th scope='col'> # </th>
@@ -147,8 +148,11 @@ export default function Dashboard(){
                                         <tr key={index}>    
                                         <td data-label='cliente'>{item.cliente}</td>
                                         <td data-label='Assunto'>{item.assunto}</td>
+                                        <td data-label='prioridade'>
+                                            <span className='badge' style={{backgroundColor: item.prioridade === 'baixa' ? '#5cb85c' : item.prioridade === 'media' ? '#f0ad4e' : '#d9534f'}}>{item.prioridade}</span>    
+                                        </td>  
                                         <td data-label='Status'>
-                                            <span className='badge' style={{backgroundColor: item.status === 'aberto' ? '#5cb85c' : '#3583f6'}}>{item.status}</span>
+                                            <span className='badge' style={{backgroundColor: item.status === 'aberto' ? '#3583f6' : item.status === 'atendimento' ? '#5cb85c' : '#d9534f'}}>{item.status}</span>
                                         </td>
                                         <td data-label='Cadastrado'> {item.createdFormated} </td>
                                         <td data-label='#'> 

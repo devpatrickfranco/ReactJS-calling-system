@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react"
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { FiPlusCircle } from 'react-icons/fi'
 import { toast } from 'react-toastify'
 
@@ -10,9 +10,7 @@ import { dbFirebase } from "../../services/firebaseConnection"
 import './newchamado.css'
 
 export default function NewChamado(){
-  
     const { id } = useParams()
-    const navigate = useNavigate()
 
     const [loadCustomers, setLoadCustomers] = useState(true)
     const [customers, setCustomers] = useState([]) 
@@ -20,18 +18,20 @@ export default function NewChamado(){
 
     const [assunto, setAssunto] = useState('Trafego Pago')
     const [status, setStatus] = useState('aberto')
+    const [prioridade, setPrioridade] = useState('baixa')  // Novo estado para prioridade
     const [complemento, setComplemento] = useState('')
     
     const [idCustomer, setIdCustomer] = useState(false)
 
     const { user } = useContext(AuthenticateContext)
 
+    const { hasPermission } = useContext(AuthenticateContext);
+
     useEffect(() => {
         async function loadCustomers(){
             await dbFirebase.firestore().collection('customers')
             .get()
-            .then((snapshot) =>{
-
+            .then((snapshot) => {
                 const list = []
                 snapshot.forEach((doc) => { 
                     list.push({
@@ -69,7 +69,8 @@ export default function NewChamado(){
         .then((snapshot) => {
             setAssunto(snapshot.data().assunto)
             setStatus(snapshot.data().status)
-            setComplemento(snapshot.data().complemento || '') // Corrige para carregar complemento corretamente
+            setPrioridade(snapshot.data().prioridade || 'baixa') // Carrega a prioridade, com padrão 'baixa'
+            setComplemento(snapshot.data().complemento || '')
 
             const index = list.findIndex(item => item.id === snapshot.data().clienteId)
             setCustomersSelected(index >= 0 ? index : 0)
@@ -94,6 +95,7 @@ export default function NewChamado(){
                 clienteId: customers[customersSelected].id,
                 assunto: assunto,
                 status: status,
+                prioridade: prioridade,  // Salva a prioridade
                 complemento: complemento,
                 userId: user.uid
             })
@@ -116,12 +118,13 @@ export default function NewChamado(){
             clienteId: customers[customersSelected].id,
             assunto: assunto,
             status: status,
+            prioridade: prioridade,  // Adiciona a prioridade
             complemento: complemento,
             userId: user.uid
         }).then(() => {
             toast.success('Chamado Criado com Sucesso')
             setCustomersSelected(0)
-            setComplemento('') // Limpa o campo complemento
+            setComplemento('')
         })
         .catch((err) => {
             toast.error('Erro ao criar o chamado!')
@@ -137,32 +140,73 @@ export default function NewChamado(){
         setStatus(e.target.value)
     }
 
+    function handlePriorityChange(e){
+        setPrioridade(e.target.value)
+    }
+
     function handleChangeCustomers(e){
         setCustomersSelected(e.target.value)
     }
 
-    return(
-       <div>
-            <Header/>
+    // Função para alterar o status do chamado para "atendimento"
+    async function openCallButton() {
+        try {
+            // Atualiza o estado local para "atendimento"
+            setStatus('atendimento');
+            
+            // Atualiza o Firestore para refletir o novo status
+            await dbFirebase.firestore().collection('chamados')
+                .doc(id)
+                .update({
+                    status: 'atendimento'
+                });
+            
+            toast.info('Chamado Em Atendimento!');
+        } catch (error) {
+            console.error('Erro ao atualizar o status do chamado:', error);
+            toast.error('Erro ao abrir o chamado.');
+        }
+    }
+    
+    async function finalizeCallButton() {
+        try {
+            setStatus('finalizado'); // Atualiza o estado local para "finalizado"
+    
+            await dbFirebase.firestore().collection('chamados')
+                .doc(id)
+                .update({
+                    status: 'finalizado'
+                });
+    
+            toast.info('Chamado finalizado com sucesso!');
+        } catch (error) {
+            console.error('Erro ao finalizar o chamado:', error);
+            toast.error('Erro ao finalizar o chamado.');
+        }
+    }
+    
+
+    return (
+        <div>
+            <Header />
             <div className="content">
-                <Title name={'Novo Chamado'}>
-                <FiPlusCircle size={24}/>
+                <Title name={id ? 'Editar Chamado' : 'Novo Chamado'}>
+                    <FiPlusCircle size={24}/>
                 </Title>
 
                 <div className="container">
+            
                     <form className="form-profile" onSubmit={handleNewChamado}>
                         <label>Cliente</label>
                         {loadCustomers ? (
                             <input type="text" disabled={true} value={'Carregando itens...'} />
-                        ): (
+                        ) : (
                             <select value={customersSelected} onChange={handleChangeCustomers}>
-                                {customers.map((item, index) => {
-                                    return (
-                                        <option key={item.id} value={index}>
-                                            {item.nomeFantasia}
-                                        </option> 
-                                    )
-                                })}
+                                {customers.map((item, index) => (
+                                    <option key={item.id} value={index}>
+                                        {item.nomeFantasia}
+                                    </option> 
+                                ))}
                             </select>
                         )}
 
@@ -173,34 +217,34 @@ export default function NewChamado(){
                             <option value={'Site / Google'}>Site / Google</option>
                         </select>
 
-                        <label>Status</label>
+                        <label>Prioridade</label>
                         <div className="status">
                             <input 
-                                name="radio"
+                                name="prioridade"
                                 type="radio"
-                                value={'aberto'}
-                                onChange={handleOptionChange}
-                                checked={status === 'aberto'}
+                                value={'baixa'}
+                                onChange={handlePriorityChange}
+                                checked={prioridade === 'baixa'}
                             />
-                            <span> Aberto</span>
+                            <span>Baixa</span>
 
                             <input
-                                name="radio"
+                                name="prioridade"
                                 type="radio"
-                                value={'atendimento'}
-                                onChange={handleOptionChange}
-                                checked={status === 'atendimento'}
+                                value={'media'}
+                                onChange={handlePriorityChange}
+                                checked={prioridade === 'media'}
                             />
-                            <span>Em atendimento</span>
+                            <span>Média</span>
                             
                             <input
-                                name="radio"
+                                name="prioridade"
                                 type="radio"
-                                value={'finalizado'}
-                                onChange={handleOptionChange}
-                                checked={status === 'finalizado'}
+                                value={'alta'}
+                                onChange={handlePriorityChange}
+                                checked={prioridade === 'alta'}
                             />
-                            <span> Finalizado </span>
+                            <span>Alta</span>
                         </div>
 
                         <label>Complemento</label>
@@ -208,15 +252,26 @@ export default function NewChamado(){
                             type="text"
                             placeholder="Descreva em detalhes a ajuda que precisa"
                             onChange={(e) => setComplemento(e.target.value)}
-                            value={complemento} // Adiciona o valor para o textarea
+                            value={complemento}
                         />
-
-                        <button type="submit">
-                            Criar Chamado
-                        </button>
+                           
+                                <button type="submit">
+                                    {id ? 'Salvar Chamado' : 'Criar Chamado'}
+                                </button>
                     </form>
+
+                            {user && id && hasPermission(user, 'Admin') && (
+                            <>
+                                {status === 'aberto' && (
+                                    <button onClick={openCallButton}>Abrir Chamado</button>
+                                )}
+                                {status === 'atendimento' && (
+                                    <button onClick={finalizeCallButton}>Finalizar Chamado</button>
+                                )}
+                            </>
+                        )}
                 </div>
             </div>
-       </div> 
+        </div> 
     )
 }

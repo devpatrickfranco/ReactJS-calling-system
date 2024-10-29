@@ -59,7 +59,7 @@ function AuthenticateProvider({ children }) {
     }
 
     // registering new user
-    async function signUp(nome, email, password){
+    async function signUp(nome, email, password, role){
         setLoadingAuthenticate(true)
         await dbFirebase.auth().createUserWithEmailAndPassword(email, password)
         .then( async (value) => {
@@ -71,6 +71,7 @@ function AuthenticateProvider({ children }) {
             .doc(uid)
             .set({
               nome: nome,
+              role: role,
               imgProfile: null,
             })
             .then( ()=> {
@@ -78,7 +79,8 @@ function AuthenticateProvider({ children }) {
                     uid: uid,
                     nome: nome,
                     email: value.user.email,
-                    imgProfile: null
+                    imgProfile: null,
+                    role: role
                 }
 
                 setUser(data)
@@ -91,6 +93,11 @@ function AuthenticateProvider({ children }) {
             toast.error('Ops! Algo deu errado')
             setLoadingAuthenticate(false)
        })
+    }
+
+    function hasPermission(user, requiredRole) {
+        const roleHierarchy = ['user', 'admin', 'SuperAdmin'];
+        return roleHierarchy.indexOf(user.role) >= roleHierarchy.indexOf(requiredRole);
     }
 
     function storageUser(data){
@@ -114,7 +121,8 @@ function AuthenticateProvider({ children }) {
                signOut,
                loadingAuthenticate,
                setUser, 
-               storageUser
+               storageUser,
+               hasPermission
             }}>
             {children}
         </AuthenticateContext.Provider>
