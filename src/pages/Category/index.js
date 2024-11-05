@@ -235,10 +235,10 @@ const handleClose = () => {
                 createdAt: new Date(),
             });
             console.log('Categoria criada com sucesso!');
-            toast.success('Categoria Criada Com Sucesso!')
             handleClose(); // Fecha o modal após criar a categoria
             setCategoryName(''); // Limpa o campo após salvar
             window.location.reload()
+            toast.success('Categoria Criada Com Sucesso!')
         } catch (error) {
             console.error('Erro ao criar categoria:', error);
             toast.error('Erro Ao Criar Categoria!')
@@ -255,8 +255,8 @@ const handleClose = () => {
                 createdAt: new Date(),
             });
             console.log('Subcategoria criada com sucesso!');
-            toast.success('Categoria Criada Com Sucesso!')
             window.location.reload()
+            toast.success('Categoria Criada Com Sucesso!')
             handleClose(); // Fecha o modal após criar a subcategoria
             setSelectedCategory('');
             setSubcategoryName('');
@@ -317,8 +317,12 @@ const handleClose = () => {
                 await dbFirebase.firestore().collection('categorys').doc(selectedItem.id).delete();
                 fetchCategories(); // Atualiza a lista de categorias após exclusão
                 handleClose();
+                window.location.reload()
+                toast.success('Categoria Criada Com Sucesso!')
             } catch (error) {
                 console.error("Erro ao excluir categoria: ", error);
+                window.location.reload()
+                toast.error('Erro ao Criar Categoria!')
             }
         } else if (editType === 'subcategory' && selectedItem && selectedCategory) {
             try {
@@ -330,8 +334,12 @@ const handleClose = () => {
                     .delete();
                 fetchCategories(); // Atualiza a lista de categorias e subcategorias após exclusão
                 handleClose();
+                window.location.reload()
+                toast.success('Subcategoria Criada Com Sucesso!')
             } catch (error) {
                 console.error("Erro ao excluir subcategoria: ", error);
+                window.location.reload()
+                toast.error('Erro ao Criar Subategoria!')
             }
         }
     };
@@ -345,8 +353,8 @@ const updateItem = async () => {
             });
             fetchCategories(); // Atualiza a lista de categorias após edição
             handleClose();
-            toast.success('Categoria Editada com Sucesso')
             window.location.reload()
+            toast.success('Categoria Editada com Sucesso')
         } catch (error) {
             toast.error('Erro ao atualizar categoria')
             console.error("Erro ao atualizar categoria: ", error);
@@ -363,9 +371,10 @@ const updateItem = async () => {
                 });
             fetchCategories(); // Atualiza a lista de categorias e subcategorias após edição
             handleClose();
-            toast.success('Subcategoria Editada com Sucesso')
             window.location.reload()
+            toast.success('Subcategoria Editada com Sucesso')
         } catch (error) {
+            window.location.reload()
             toast.error('Erro ao atualizar subcategoria')
             console.error("Erro ao atualizar subcategoria: ", error);
         }
@@ -400,39 +409,50 @@ const handleAssign = async () => {
             })
         });
 
-        toast.success('Categoria atribuída com sucesso!');
+       
         handleClose();
         setSelectedCategory('');
         setSelectedSubcategory('');
         setSelectedUser('');
+        window.location.reload()
+        toast.success('Categoria atribuída com sucesso!');
     } catch (error) {
         console.error('Erro ao atribuir categoria:', error);
+        window.location.reload()
         toast.error('Erro ao atribuir categoria');
     }
 };
 
-      // Função para excluir a categoria/subcategoria selecionada
-      const handleDeleteResponsible = async () => {
-        if (!selectedUser || !selectedResponsible) {
-            toast.error('Selecione um usuário e um responsável para excluir.');
-            return;
-        }
+// Função para excluir a categoria/subcategoria selecionada
+const handleDeleteResponsible = async () => {
+    if (!selectedUser || !selectedResponsible) {
+        toast.error('Selecione um usuário e um responsável para excluir.');
+        return;
+    }
 
-        try {
-            const userRef = dbFirebase.firestore().collection('users').doc(selectedUser);
+    try {
+        const userRef = dbFirebase.firestore().collection('users').doc(selectedUser);
 
-            await userRef.update({
-                responsible: dbFirebase.firestore.FieldValue.arrayRemove(selectedResponsible),
-            });
+        // Extrair o objeto `responsible` com os campos completos para remoção
+        const responsibleObj = JSON.parse(selectedResponsible);
+        
+        await userRef.update({
+            responsible: dbFirebase.firestore.FieldValue.arrayRemove({
+                categoryId: responsibleObj.categoryId,
+                subcategoryId: responsibleObj.subcategoryId,
+                subcategoryName: responsibleObj.subcategoryName
+            })
+        });
 
-            toast.success('Responsável removido com sucesso!');
-            setSelectedResponsible('');
-            setResponsibles(responsibles.filter(r => r !== selectedResponsible)); // Remove o item da lista local
-        } catch (error) {
-            console.error('Erro ao excluir responsável:', error);
-            toast.error('Erro ao excluir responsável');
-        }
-    };
+        toast.success('Responsável removido com sucesso!');
+        setSelectedResponsible('');
+        setResponsibles(responsibles.filter(r => r.subcategoryId !== responsibleObj.subcategoryId)); // Remove o item da lista local
+    } catch (error) {
+        console.error('Erro ao excluir responsável:', error);
+        toast.error('Erro ao excluir responsável');
+    }
+};
+
   return (
     <div>
         <Header />
@@ -698,6 +718,7 @@ const handleAssign = async () => {
             </Modal.Footer>
         </Modal>
 
+        {/* MODAL PARA EXCLUIR UM RESPOSIBLE DO USUARIO*/}
         <Modal show={showDeleteResponsible} onHide={handleClose}>
             <Modal.Header closeButton>
                 <Modal.Title>Editar Cargos do Usuário</Modal.Title>
