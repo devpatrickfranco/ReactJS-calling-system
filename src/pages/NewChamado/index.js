@@ -5,6 +5,7 @@ import { toast } from 'react-toastify'
 
 import Header from "../../components/Header"
 import Title from "../../components/Title"
+import Modal from '../../components/Modal'
 import { AuthenticateContext } from "../../contexts/authenticate"
 import { dbFirebase } from "../../services/firebaseConnection"
 import './newchamado.css'

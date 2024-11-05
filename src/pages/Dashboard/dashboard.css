@@ -26,6 +26,7 @@
     font-size: 1.1em;
     border-radius: 5px;
     transition: ease-in 0.2s;
+    margin-right: 8px;
 }
 
 .new svg {
@@ -36,6 +37,7 @@
     background-color:   #5fd204;
     transform: scale(1.1);
 }
+
 
 table {
     border: 1px solid #ccc;

@@ -63,3 +63,26 @@
     padding-top: .5em;
     white-space: pre-wrap;
 }
+
+.btn-reabrir{
+    display: flex;
+    justify-content: end;
+    margin-right: -120px;
+}
+
+.btn-reabrir button{
+    width: 100px;
+    height: 30px;
+    border: solid 1px;
+    border-color: #f65835;
+    background-color: transparent;
+    color: #f65835;
+    border-radius: 5px;
+    font-size: 18px;
+    transition: ease-in 0.2s;
+}
+
+.btn-reabrir button:hover{
+    background-color: #f65835;
+    color: #fff;
+}

@@ -1,8 +1,30 @@
+import { useParams } from 'react-router-dom'
+import { FiX } from 'react-icons/fi'
+import { toast } from 'react-toastify';
+import { dbFirebase } from '../../services/firebaseConnection';
 import './modal.css'
 
-import { FiX } from 'react-icons/fi'
+
+
 
 export default function Modal({conteudo, close}){
+
+    async function reabrirChamado() {
+        try {
+            await dbFirebase.firestore().collection('chamados')
+                .doc(conteudo.id) // Usando conteudo.id diretamente
+                .update({
+                    status: 'reaberto'
+                });
+            
+            toast.info('Chamado reaberto com sucesso!');
+            close(); // Fecha o modal ao concluir a ação
+        } catch (error) {
+            console.error('Erro ao reabrir o chamado:', error);
+            toast.error('Erro ao reabrir o chamado.');
+        }
+    }
+
     return (
         <div className='modal'>
             <div className='container'>
@@ -43,7 +65,18 @@ export default function Modal({conteudo, close}){
                     </>
                 )}
 
+                <div className='btn-reabrir'>
+                    {conteudo.status === 'finalizado' && (
+                        <>
 
+                    <button onClick={reabrirChamado}>
+                        Reabrir
+                    </button>
+
+                        </>
+                    )}
+                    </div>
+                
                 </div>
             </div>
         </div>  

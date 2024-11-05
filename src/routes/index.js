@@ -7,6 +7,10 @@ import Dashboard from '../pages/Dashboard';
 import Profile from '../pages/Profile'
 import Customers from '../pages/NewCustomers';
 import NewChamado from '../pages/NewChamado';
+import Resolved from '../pages/Resolved'; 
+import Users from '../pages/Users'
+import Category from '../pages/Category'
+import TesteCategory from '../pages/Category/category'
 
 export default function AppRoutes() {
   return (
@@ -18,6 +22,11 @@ export default function AppRoutes() {
       <Route path='/customers'element={<RouterWrapper element={Customers} isPrivate />} />
       <Route path='/new'element={<RouterWrapper element={NewChamado} isPrivate />} />
       <Route path='/new/:id'element={<RouterWrapper element={NewChamado} isPrivate />} />
+      <Route path='/resolved'element={<RouterWrapper element={Resolved} isPrivate />} />
+      <Route path='/category'element={<RouterWrapper element={Category} isPrivate />} />
+      <Route path='/users'element={<RouterWrapper element={Users} isPrivate />} />
+      <Route path='/teste'element={<RouterWrapper element={TesteCategory} isPrivate />} />
+
     </Routes>
   );
 }

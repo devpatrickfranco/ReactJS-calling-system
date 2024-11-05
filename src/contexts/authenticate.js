@@ -43,7 +43,8 @@ function AuthenticateProvider({ children }) {
                 uid: uid,
                 nome: userProfile.data().nome,
                 imgProfile: userProfile.data().imgProfile,
-                email: value.user.email
+                email: value.user.email,
+                role: userProfile.data().role
 }
             setUser(data)
             storageUser(data)
@@ -96,7 +97,7 @@ function AuthenticateProvider({ children }) {
     }
 
     function hasPermission(user, requiredRole) {
-        const roleHierarchy = ['user', 'admin', 'SuperAdmin'];
+        const roleHierarchy = ['user', 'admin', 'superAdmin'];
         return roleHierarchy.indexOf(user.role) >= roleHierarchy.indexOf(requiredRole);
     }
 
