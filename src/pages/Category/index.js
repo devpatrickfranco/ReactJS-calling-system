@@ -35,6 +35,7 @@ const CategoryAccordion = () => {
     const [subcategoryName, setSubcategoryName] = useState('');
     
     const [users, setUsers] = useState([]);
+    const [usersModal, setUsersModal] = useState([]);
     const [selectedSubcategory, setSelectedSubcategory] = useState('');
     const [selectedUser, setSelectedUser] = useState('');
     const [subcategories, setSubcategories] = useState([]);
@@ -55,6 +56,44 @@ const fetchCategories = async () => {
         console.error("Erro ao buscar categorias: ", error);
     }
 };
+
+  // Função para carregar os dados de responsáveis
+  const fetchSubcategoriesWithUsers = async () => {
+    try {
+        const updatedSubcategories = await Promise.all(
+            categories.map(async (category) => {
+                const subcategoryData = await Promise.all(
+                    category.subcategories.map(async (sub) => {
+                        const subcategoryDoc = await dbFirebase.firestore()
+                            .collection('categorys')
+                            .doc(category.id)
+                            .collection('subcategories')
+                            .doc(sub.id)
+                            .get();
+                        
+                        if (subcategoryDoc.exists) {
+                            const subcategory = subcategoryDoc.data();
+                            return {
+                                ...sub,
+                                responsible: subcategory.responsible || []
+                            };
+                        } else {
+                            return { ...sub, responsible: [] };
+                        }
+                    })
+                );
+                return { ...category, subcategories: subcategoryData };
+            })
+        );
+        setSubcategories(updatedSubcategories);
+    } catch (error) {
+        console.error('Erro ao carregar subcategorias:', error);
+    }
+};
+
+useEffect(() => {
+    fetchSubcategoriesWithUsers();
+}, [categories]);
 
   useEffect(() => {
     async function loadCategories() {
@@ -195,9 +234,7 @@ useEffect(() => {
         }
     }, [selectedUser]);
 
-
-
-  if (loadingCategories) {
+    if (loadingCategories) {
     return  <div>
                <Spinners/>
             </div>; // Loader ou mensagem de carregamento
@@ -388,19 +425,27 @@ const handleAssign = async () => {
     }
 
     try {
+        // Referência do usuário
         const userRef = dbFirebase.firestore().collection('users').doc(selectedUser);
 
-        // Obter o nome da subcategoria selecionada
-        const subcategoryDoc = await dbFirebase.firestore()
-            .collection('categorys')
+        // Referência da subcategoria
+        const subcategoryRef = dbFirebase.firestore()
+            .collection('categorys') // Ajuste para a coleção 'categorys'
             .doc(selectedCategory)
             .collection('subcategories')
-            .doc(selectedSubcategory)
-            .get();
+            .doc(selectedSubcategory);
 
-        const subcategoryName = subcategoryDoc.exists ? subcategoryDoc.data().nome : '';
+        // Obter nome da subcategoria
+        const subcategoryDoc = await subcategoryRef.get();
 
-        // Atualizar o campo 'responsible' do usuário no Firebase
+        if (!subcategoryDoc.exists) {
+            toast.error('Subcategoria não encontrada.');
+            return;
+        }
+
+        const subcategoryName = subcategoryDoc.data().nome;
+
+        // Atualizar o campo 'responsible' do usuário
         await userRef.update({
             responsible: dbFirebase.firestore.FieldValue.arrayUnion({
                 categoryId: selectedCategory,
@@ -409,16 +454,23 @@ const handleAssign = async () => {
             })
         });
 
-       
+        // Atualizar a subcategoria com o usuário atribuído
+        await subcategoryRef.update({
+            responsible: dbFirebase.firestore.FieldValue.arrayUnion({
+                userId: selectedUser,
+                userName: users.find(user => user.id === selectedUser)?.nome // Armazenando o nome do usuário
+            })
+        });
+
+        // Fechar o modal e resetar o estado
         handleClose();
         setSelectedCategory('');
         setSelectedSubcategory('');
         setSelectedUser('');
-        window.location.reload()
+
         toast.success('Categoria atribuída com sucesso!');
     } catch (error) {
         console.error('Erro ao atribuir categoria:', error);
-        window.location.reload()
         toast.error('Erro ao atribuir categoria');
     }
 };
@@ -453,6 +505,14 @@ const handleDeleteResponsible = async () => {
     }
 };
 
+const getUsersForSubcategory = (subcategoryId, users) => {
+    const assignedUsers = users.filter(user =>
+        user.subcategoryIds.includes(subcategoryId)
+    );
+    console.log('Assigned Users for subcategory', subcategoryId, assignedUsers);  // Verifique aqui
+    return assignedUsers;
+};
+
   return (
     <div>
         <Header />
@@ -462,33 +522,34 @@ const handleDeleteResponsible = async () => {
             </Title>
             <div className='background'>
             <Row>
-                {categories.map((category, index) => (
-                    <Col key={category.id} xs={12} md={4} className="mb-3">
-                        <Accordion>
-                            <Accordion.Item eventKey={index.toString()}>
-                                <Accordion.Header>{category.nome}</Accordion.Header>
-                                <Accordion.Body>
-                                <Accordion>
-                                    {category.subcategories.map((sub, subIndex) => (
-                                        <Accordion.Item eventKey={`${index}-${subIndex}`} key={sub.id}>
-                                            <Accordion.Header>{sub.nome}</Accordion.Header>
-                                            <Accordion.Body>
-                                                {users.filter(user => user.subcategoryId === sub.id).length > 0 ? (
-                                                    users
-                                                        .filter(user => user.subcategoryId === sub.id)
-                                                        .map(user => <p key={user.id}>{user.nome}</p>)
-                                                ) : (
-                                                    <p>Nenhum usuário atribuído</p>
-                                                )}
-                                            </Accordion.Body>
-                                        </Accordion.Item>
-                                    ))}
-                                </Accordion>
-                                </Accordion.Body>
-                            </Accordion.Item>
-                        </Accordion>
-                    </Col>
-                ))}
+                    <Accordion>
+                        {subcategories.map((category, index) => (
+                            <Col key={category.id} xs={12} md={4} className="mb-3">
+                                <Accordion.Item eventKey={index.toString()}>
+                                    <Accordion.Header>{category.nome}</Accordion.Header>
+                                    <Accordion.Body>
+                                        {category.subcategories.map((sub, subIndex) => {
+                                            const assignedUsers = sub.responsible || [];
+                                            return (
+                                                <Accordion.Item eventKey={`${subIndex}`} key={sub.id}>
+                                                    <Accordion.Header>{sub.nome}</Accordion.Header>
+                                                    <Accordion.Body>
+                                                        {assignedUsers.length > 0 ? (
+                                                            assignedUsers.map((user, index) => (
+                                                                <p key={index}>{user.userName}</p>
+                                                            ))
+                                                        ) : (
+                                                            <p>Nenhum usuário atribuído</p>
+                                                        )}
+                                                    </Accordion.Body>
+                                                </Accordion.Item>
+                                            );
+                                        })}
+                                    </Accordion.Body>
+                                </Accordion.Item>
+                            </Col>
+                        ))}
+                </Accordion>
             </Row>
 
 
@@ -649,7 +710,7 @@ const handleDeleteResponsible = async () => {
             </Modal.Footer>
         </Modal>
 
-
+        {/* MODAL PARA ATRIBUIR SUBCATEGORIA A USUARIO*/}
         <Modal show={showAssignCategory} onHide={handleClose}>
             <Modal.Header closeButton>
                 <Modal.Title>Atribuir Categoria a Usuário</Modal.Title>
