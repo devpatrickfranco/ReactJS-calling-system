@@ -345,7 +345,10 @@ const updateItem = async () => {
             });
             fetchCategories(); // Atualiza a lista de categorias após edição
             handleClose();
+            toast.success('Categoria Editada com Sucesso')
+            window.location.reload()
         } catch (error) {
+            toast.error('Erro ao atualizar categoria')
             console.error("Erro ao atualizar categoria: ", error);
         }
     } else if (editType === 'subcategory' && selectedItem && selectedCategory) {
@@ -360,7 +363,10 @@ const updateItem = async () => {
                 });
             fetchCategories(); // Atualiza a lista de categorias e subcategorias após edição
             handleClose();
+            toast.success('Subcategoria Editada com Sucesso')
+            window.location.reload()
         } catch (error) {
+            toast.error('Erro ao atualizar subcategoria')
             console.error("Erro ao atualizar subcategoria: ", error);
         }
     }
