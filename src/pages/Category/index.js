@@ -57,43 +57,54 @@ const fetchCategories = async () => {
     }
 };
 
-  // Função para carregar os dados de responsáveis
-  const fetchSubcategoriesWithUsers = async () => {
+const fetchSubcategoriesWithUsers = async () => {
     try {
+        // Para cada categoria, vamos carregar suas subcategorias e os responsáveis
         const updatedSubcategories = await Promise.all(
             categories.map(async (category) => {
+                // Carregar subcategorias da subcoleção 'subcategories' dentro de cada categoria
+                const subcategorySnapshot = await dbFirebase.firestore()
+                    .collection('categorys')
+                    .doc(category.id)
+                    .collection('subcategories')
+                    .get();
+
+                // Para cada subcategoria, obter o campo 'responsible' ou um array vazio se não existir
                 const subcategoryData = await Promise.all(
-                    category.subcategories.map(async (sub) => {
-                        const subcategoryDoc = await dbFirebase.firestore()
-                            .collection('categorys')
-                            .doc(category.id)
-                            .collection('subcategories')
-                            .doc(sub.id)
-                            .get();
-                        
-                        if (subcategoryDoc.exists) {
-                            const subcategory = subcategoryDoc.data();
-                            return {
-                                ...sub,
-                                responsible: subcategory.responsible || []
-                            };
-                        } else {
-                            return { ...sub, responsible: [] };
-                        }
+                    subcategorySnapshot.docs.map(async (subDoc) => {
+                        const subcategory = subDoc.data();
+                        const responsible = subcategory.responsible || []; // Garantir que 'responsible' sempre seja um array
+
+                        return {
+                            id: subDoc.id,  // ID da subcategoria
+                            nome: subcategory.nome, // Nome da subcategoria
+                            responsible: responsible // Lista de responsáveis (se existirem)
+                        };
                     })
                 );
-                return { ...category, subcategories: subcategoryData };
+
+                return {
+                    ...category,  // Retorna a categoria com as subcategorias carregadas
+                    subcategories: subcategoryData
+                };
             })
         );
-        setSubcategories(updatedSubcategories);
+
+        setSubcategories(updatedSubcategories);  // Atualiza o estado com as categorias e subcategorias carregadas
     } catch (error) {
         console.error('Erro ao carregar subcategorias:', error);
     }
 };
 
+
 useEffect(() => {
-    fetchSubcategoriesWithUsers();
-}, [categories]);
+    if (Array.isArray(categories) && categories.length > 0) {
+        fetchSubcategoriesWithUsers();
+    } else {
+        console.log('Categorias não carregadas ou inválidas');
+    }
+}, [categories]);  // Dependência em categories para re-executar sempre que as categorias forem atualizadas
+
 
   useEffect(() => {
     async function loadCategories() {
@@ -303,32 +314,40 @@ const handleClose = () => {
         }
     }
 
-    // Manipula a seleção de categoria para carregar subcategorias
     const handleCategoryChange = async (e) => {
         const selectedCategoryId = e.target.value;
+        console.log("Categoria Selecionada:", selectedCategoryId);  // Verifica qual categoria foi selecionada
         setSelectedCategory(selectedCategoryId);
-
+      
         if (selectedCategoryId) {
-            try {
-                const subcategoriesSnapshot = await dbFirebase.firestore()
-                    .collection('categorys')
-                    .doc(selectedCategoryId)
-                    .collection('subcategories')
-                    .get();
-
-                const fetchedSubcategories = subcategoriesSnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                setSubcategoriesArray(fetchedSubcategories);
-                setSelectedItem('');
-            } catch (error) {
-                console.error("Erro ao buscar subcategorias: ", error);
-            }
+          try {
+            // Buscar subcategorias da categoria selecionada
+            const subcategoriesSnapshot = await dbFirebase.firestore()
+              .collection('categorys')
+              .doc(selectedCategoryId)
+              .collection('subcategories')
+              .get();
+      
+            const fetchedSubcategories = subcategoriesSnapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data()
+            }));
+      
+            console.log("Subcategorias Carregadas:", fetchedSubcategories);  // Verifica o que foi carregado
+            setSubcategoriesArray(fetchedSubcategories);
+            setSelectedItem(null);
+          } catch (error) {
+            console.error("Erro ao buscar subcategorias: ", error);
+            setSubcategoriesArray([]); // Garantir que o estado seja um array vazio em caso de erro
+          }
         } else {
-            setSubcategoriesArray([]);
+          setSubcategoriesArray([]); // Limpar as subcategorias se não houver categoria selecionada
+          setSelectedItem(null); // Limpar a seleção da subcategoria
         }
-    };
+      };
+      
+    
+    
 
     // Manipula a seleção da subcategoria
     const handleSubcategoryChange = (e) => {
@@ -522,35 +541,40 @@ const getUsersForSubcategory = (subcategoryId, users) => {
             </Title>
             <div className='background'>
             <Row>
-                    <Accordion>
-                        {subcategories.map((category, index) => (
-                            <Col key={category.id} xs={12} md={4} className="mb-3">
-                                <Accordion.Item eventKey={index.toString()}>
-                                    <Accordion.Header>{category.nome}</Accordion.Header>
-                                    <Accordion.Body>
-                                        {category.subcategories.map((sub, subIndex) => {
-                                            const assignedUsers = sub.responsible || [];
-                                            return (
-                                                <Accordion.Item eventKey={`${subIndex}`} key={sub.id}>
-                                                    <Accordion.Header>{sub.nome}</Accordion.Header>
-                                                    <Accordion.Body>
-                                                        {assignedUsers.length > 0 ? (
-                                                            assignedUsers.map((user, index) => (
-                                                                <p key={index}>{user.userName}</p>
-                                                            ))
-                                                        ) : (
-                                                            <p>Nenhum usuário atribuído</p>
-                                                        )}
-                                                    </Accordion.Body>
-                                                </Accordion.Item>
-                                            );
-                                        })}
-                                    </Accordion.Body>
-                                </Accordion.Item>
-                            </Col>
-                        ))}
-                </Accordion>
-            </Row>
+            <Accordion>
+                {subcategories.map((category, index) => (
+                    <Col key={category.id} xs={12} md={4} className="mb-3">
+                        <Accordion.Item eventKey={index.toString()}>
+                            <Accordion.Header>{category.nome}</Accordion.Header>
+                            <Accordion.Body>
+                                {/* Accordion para subcategorias dentro de cada categoria */}
+                                <Accordion>
+                                    {category.subcategories.map((sub, subIndex) => {
+                                        // Pegando os responsáveis para cada subcategoria
+                                        const assignedUsers = sub.responsible || [];
+                                        return (
+                                            <Accordion.Item eventKey={`${index}-${subIndex}`} key={sub.id}>
+                                                <Accordion.Header>{sub.nome}</Accordion.Header>
+                                                <Accordion.Body>
+                                                    {/* Exibindo usuários responsáveis */}
+                                                    {assignedUsers.length > 0 ? (
+                                                        assignedUsers.map((user, userIndex) => (
+                                                            <p key={userIndex}>* {user.userName}</p>
+                                                        ))
+                                                    ) : (
+                                                        <p>Nenhum usuário atribuído</p>
+                                                    )}
+                                                </Accordion.Body>
+                                            </Accordion.Item>
+                                        );
+                                    })}
+                                </Accordion>
+                            </Accordion.Body>
+                        </Accordion.Item>
+                    </Col>
+                ))}
+            </Accordion>
+        </Row>
 
 
 
@@ -626,8 +650,8 @@ const getUsersForSubcategory = (subcategoryId, users) => {
 
 
 
-{/* MODAL PARA EDITAR UMA CATEGORIA OU SUBCATEGORIA */}
- <Modal show={showEditCategory} onHide={handleClose}>
+        {/* MODAL PARA EDITAR UMA CATEGORIA OU SUBCATEGORIA */}
+        <Modal show={showEditCategory} onHide={handleClose}>
             <Modal.Header closeButton>
                 <Modal.Title>Editar {editType === 'category' ? 'Categoria' : 'Subcategoria'}</Modal.Title>
             </Modal.Header>
@@ -681,10 +705,16 @@ const getUsersForSubcategory = (subcategoryId, users) => {
                             <Form.Label>Selecione a Subcategoria</Form.Label>
                             <Form.Select value={selectedItem ? selectedItem.id : ''} onChange={handleSubcategoryChange}>
                                 <option value="">Escolha uma subcategoria</option>
-                                {subcategoriesArray.map(sub => (
+                                {Array.isArray(subcategoriesArray) && subcategoriesArray.length > 0 ? (
+                                    subcategoriesArray.map(sub => (
                                     <option key={sub.id} value={sub.id}>{sub.nome}</option>
-                                ))}
-                            </Form.Select>
+                                    ))
+                                ) : (
+                                    <option value="">Nenhuma subcategoria disponível</option>
+                                )}
+                                </Form.Select>
+
+
                         </Form.Group>
                     </>
                 )}
