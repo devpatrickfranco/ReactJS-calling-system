@@ -12,7 +12,7 @@
 /build
 
 # conexão com firebase
-./src/services/firebaseConnection.js
+/src/services/firebaseConnection.js
 
 # misc
 .DS_Store
