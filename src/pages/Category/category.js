@@ -1,120 +1,123 @@
 import React, { useState } from 'react';
 import { Button, Form, Row, Col, Accordion } from 'react-bootstrap';
 import { TbCategoryPlus } from 'react-icons/tb';
+
+import { addCategory, addSubcategory, assignUserToSubcategory, editCategory, editSubcategory, deleteCategory, deleteSubcategory, removeUserFromSubcategory, useCategoriesAndSubcategories } from '../../useCase/firebaseServicesCategory';
+
 import './category.css';
 
 const CategoryAccordion = () => {
   // Estados para categorias, subcategorias e edição
-  const [categories, setCategories] = useState([
-    { id: 1, nome: 'Categoria 1', subcategories: [] },
-    { id: 2, nome: 'Categoria 2', subcategories: [] },
-  ]);
-
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newSubcategoryName, setNewSubcategoryName] = useState('');
-  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [selectedSubcategoryId, setSelectedSubcategoryId] = useState(null);
   const [assignedUsers, setAssignedUsers] = useState([]);
 
-  // Lista de usuários
-  const [users, setUsers] = useState([
-    { id: 1, nome: 'Usuário 1' },
-    { id: 2, nome: 'Usuário 2' },
-    { id: 3, nome: 'Usuário 3' },
-    { id: 4, nome: 'Usuário 4' },
-    { id: 5, nome: 'Usuário 5' },
-  ]);
+  const { categories, users, loading } = useCategoriesAndSubcategories(); // Hook que busca as categorias e subcategorias
 
   // Função para adicionar categoria
-  const handleAddCategory = () => {
+  const handleAddCategoryFireBase = async () => {
     if (newCategoryName.trim() === '') {
       alert('Por favor, insira o nome da categoria');
       return;
     }
-
-    const newCategory = {
-      id: categories.length + 1,
-      nome: newCategoryName,
-      subcategories: [],
-    };
-
-    setCategories([...categories, newCategory]);
+    await addCategory(newCategoryName);
     setNewCategoryName('');
   };
 
   // Função para adicionar subcategoria
-  const handleAddSubcategory = () => {
-    if (newSubcategoryName.trim() === '' || selectedCategoryId === null) {
+  const handleAddSubcategoryFireBase = async () => {
+    if (newSubcategoryName.trim() === '' || selectedCategoryId === '') {
       alert('Por favor, selecione uma categoria e insira o nome da subcategoria');
       return;
     }
-
-    const updatedCategories = categories.map(category => {
-      if (category.id === selectedCategoryId) {
-        category.subcategories.push({
-          id: category.subcategories.length + 1,
-          nome: newSubcategoryName,
-          assignedUsers: [], // Lista de usuários atribuídos
-        });
-      }
-      return category;
-    });
-
-    setCategories(updatedCategories);
+    await addSubcategory(selectedCategoryId, newSubcategoryName);
     setNewSubcategoryName('');
   };
 
   // Função para atribuir usuários à subcategoria
-  const handleAssignUsersToSubcategory = () => {
-    if (selectedSubcategoryId && assignedUsers.length === 0) {
-      alert('Por favor, selecione ao menos um usuário');
+  const handleAssignUsersToSubcategoryFireBase = async () => {
+    if (!selectedCategoryId || !selectedSubcategoryId || assignedUsers.length === 0) {
+      alert('Por favor, selecione uma categoria, subcategoria e pelo menos um usuário');
       return;
     }
 
-    const updatedCategories = categories.map(category => {
-      category.subcategories = category.subcategories.map(subcategory => {
-        if (subcategory.id === selectedSubcategoryId) {
-          // Adiciona os usuários à subcategoria
-          subcategory.assignedUsers = [
-            ...subcategory.assignedUsers,
-            ...assignedUsers
-          ];
-        }
-        return subcategory;
-      });
-      return category;
-    });
+    const adminUsers = users.filter(user => user.role === 'admin');
 
-    setCategories(updatedCategories);
-    setAssignedUsers([]); // Limpa a lista de usuários selecionados
+    if (adminUsers.length === 0) {
+      alert('Não há usuários com o role de admin disponíveis para atribuição.');
+      return;
+    }
+
+    try {
+      for (const userId of assignedUsers) {
+        const user = adminUsers.find(u => u.id === userId);
+        if (user) {
+          await assignUserToSubcategory(selectedCategoryId, selectedSubcategoryId, user.id, user.nome);
+        }
+      }
+      alert('Usuários atribuídos com sucesso!');
+    } catch (error) {
+      console.error('Erro ao atribuir usuários à subcategoria:', error);
+      alert('Erro ao atribuir usuários à subcategoria');
+    }
   };
 
-  // Função para remover usuário da subcategoria
-  const handleRemoveUserFromSubcategory = (userId) => {
-    const updatedCategories = categories.map(category => {
-      category.subcategories = category.subcategories.map(subcategory => {
-        if (subcategory.id === selectedSubcategoryId) {
-          // Remove o usuário da lista de atribuídos
-          subcategory.assignedUsers = subcategory.assignedUsers.filter(id => id !== userId);
-        }
-        return subcategory;
-      });
-      return category;
-    });
-
-    setCategories(updatedCategories);
+  // Função para editar categoria
+  const handleEditCategoryFireBase = async (categoryId) => {
+    const newName = prompt('Digite o novo nome da categoria:');
+    if (newName) {
+      await editCategory(categoryId, newName);
+    }
   };
+
+  // Função para editar subcategoria
+  const handleEditSubcategoryFireBase = async (categoryId, subcategoryId) => {
+    const newName = prompt('Digite o novo nome da subcategoria:');
+    if (newName) {
+      await editSubcategory(categoryId, subcategoryId, newName);
+    }
+  };
+
+  // Função para excluir categoria
+  const handleDeleteCategoryFireBase = async (categoryId) => {
+    if (window.confirm('Tem certeza que deseja excluir esta categoria?')) {
+      await deleteCategory(categoryId);
+    }
+  };
+
+  // Função para excluir subcategoria
+  const handleDeleteSubcategoryFireBase = async (categoryId, subcategoryId) => {
+    if (window.confirm('Tem certeza que deseja excluir esta subcategoria?')) {
+      await deleteSubcategory(categoryId, subcategoryId);
+    }
+  };
+
+  const handleRemoveUserFromSubcategoryFireBase = async (categoryId, subcategoryId, userId) => {
+    try {
+      await removeUserFromSubcategory(categoryId, subcategoryId, userId);
+      alert('Usuário removido da subcategoria com sucesso!');
+    } catch (error) {
+      console.error('Erro ao remover usuário da subcategoria:', error);
+      alert('Erro ao remover usuário da subcategoria');
+    }
+  };
+  
+
+  if (loading) {
+    return <div>Carregando...</div>;
+  }
 
   return (
     <div>
       <div className="content">
         <h1>Categorias</h1>
-        <Button variant="primary" onClick={() => handleAddCategory()}>
+        <Button variant="primary" onClick={() => handleAddCategoryFireBase()}>
           Adicionar Categoria <TbCategoryPlus size={24} />
         </Button>
         <Row className="mt-3">
           <Col md={4}>
-            {/* Adicionar uma categoria */}
             <Form.Group controlId="categoryName">
               <Form.Label>Nome da Nova Categoria</Form.Label>
               <Form.Control
@@ -124,18 +127,17 @@ const CategoryAccordion = () => {
                 placeholder="Digite o nome da categoria"
               />
             </Form.Group>
-            <Button variant="success" onClick={handleAddCategory}>Salvar Categoria</Button>
+            <Button variant="success" onClick={handleAddCategoryFireBase}>Salvar Categoria</Button>
           </Col>
         </Row>
 
         <Row className="mt-3">
           <Col md={4}>
-            {/* Adicionar uma subcategoria */}
             <Form.Group controlId="selectCategory">
               <Form.Label>Selecione uma Categoria</Form.Label>
               <Form.Select
                 value={selectedCategoryId || ''}
-                onChange={(e) => setSelectedCategoryId(Number(e.target.value))}
+                onChange={(e) => setSelectedCategoryId(e.target.value)}
               >
                 <option value="">Escolha uma categoria</option>
                 {categories.map((category) => (
@@ -155,18 +157,17 @@ const CategoryAccordion = () => {
                 placeholder="Digite o nome da subcategoria"
               />
             </Form.Group>
-            <Button variant="success" onClick={handleAddSubcategory}>Salvar Subcategoria</Button>
+            <Button variant="success" onClick={handleAddSubcategoryFireBase}>Salvar Subcategoria</Button>
           </Col>
         </Row>
 
         <Row className="mt-3">
           <Col md={4}>
-            {/* Atribuir um ou mais usuários */}
             <Form.Group controlId="selectCategoryToAssign">
               <Form.Label>Selecione uma Categoria</Form.Label>
               <Form.Select
                 value={selectedCategoryId || ''}
-                onChange={(e) => setSelectedCategoryId(Number(e.target.value))}
+                onChange={(e) => setSelectedCategoryId(e.target.value)}
               >
                 <option value="">Escolha uma categoria</option>
                 {categories.map((category) => (
@@ -181,7 +182,7 @@ const CategoryAccordion = () => {
               <Form.Label>Selecione a Subcategoria</Form.Label>
               <Form.Select
                 value={selectedSubcategoryId || ''}
-                onChange={(e) => setSelectedSubcategoryId(Number(e.target.value))}
+                onChange={(e) => setSelectedSubcategoryId(e.target.value)}
                 disabled={!selectedCategoryId}
               >
                 <option value="">Escolha uma subcategoria</option>
@@ -198,12 +199,11 @@ const CategoryAccordion = () => {
 
             <Form.Group controlId="selectUsersToAssign">
               <Form.Label>Selecione os Usuários</Form.Label>
-              {/* Select com múltiplos usuários */}
               <Form.Select
                 multiple
                 value={assignedUsers}
                 onChange={(e) => {
-                  const selectedOptions = Array.from(e.target.selectedOptions, option => Number(option.value));
+                  const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
                   setAssignedUsers(selectedOptions);
                 }}
               >
@@ -214,52 +214,66 @@ const CategoryAccordion = () => {
                 ))}
               </Form.Select>
             </Form.Group>
-            <Button variant="success" onClick={handleAssignUsersToSubcategory}>
+
+            <Button variant="success" onClick={handleAssignUsersToSubcategoryFireBase}>
               Atribuir Usuários
             </Button>
           </Col>
         </Row>
 
-        {/* Listagem de categorias e suas subcategorias */}
+        <h1>Categorias e Subcategorias</h1>
         <Accordion className="mt-3">
           {categories.map((category) => (
             <Accordion.Item key={category.id} eventKey={category.id.toString()}>
               <Accordion.Header>{category.nome}</Accordion.Header>
               <Accordion.Body>
-                <Button variant="warning" onClick={() => alert('Editar Categoria')}>
-                  Editar Categoria
-                </Button>
-                <Button variant="danger" onClick={() => alert('Excluir Categoria')}>
-                  Excluir Categoria
-                </Button>
+                <Button variant="warning" onClick={() => handleEditCategoryFireBase(category.id)}>Editar Categoria</Button>
+                <Button variant="danger" onClick={() => handleDeleteCategoryFireBase(category.id)}>Excluir Categoria</Button>
+
                 <ul>
-                  {category.subcategories.map((sub) => (
+                {category.subcategories && category.subcategories.length > 0 ? (
+                  category.subcategories.map((sub) => (
                     <li key={sub.id}>
-                      {/* Exibição de subcategoria */}
-                      {sub.nome}
-                      {sub.assignedUsers.length > 0 ? (
-                        <span> - Atribuídos: 
-                          {sub.assignedUsers.map(userId => users.find(user => user.id === userId)?.nome).join(', ')}
-                          <ul>
-                            {sub.assignedUsers.map(userId => (
-                              <li key={userId}>
-                                {users.find(user => user.id === userId)?.nome} 
-                                <Button 
-                                  variant="danger" 
-                                  size="sm" 
-                                  onClick={() => handleRemoveUserFromSubcategory(userId)}
-                                >
-                                  Remover
-                                </Button>
-                              </li>
-                            ))}
-                          </ul>
-                        </span>
+                      <strong>{sub.nome}</strong>
+                       {/* Botões de Editar e Remover Subcategoria */}
+                       <div className="mt-2">
+                          <Button
+                            variant="warning"
+                            onClick={() => handleEditSubcategoryFireBase(category.id, sub.id)}
+                          >
+                            Editar
+                          </Button>
+                          <Button
+                            variant="danger"
+                            className="ml-2"
+                            onClick={() => handleDeleteSubcategoryFireBase(category.id, sub.id)}
+                          >
+                            Excluir
+                          </Button>
+                        </div>
+                      {sub.users && sub.users.length > 0 ? (
+                        <ul>
+                          {sub.users.map((user) => (
+                            <li key={user.id}>
+                              {user.nome}
+                              <Button 
+                                variant="danger" 
+                                onClick={() => handleRemoveUserFromSubcategoryFireBase(category.id, sub.id, user.id)}
+                              >
+                                Remover Usuário
+                              </Button>
+                            </li>
+                          ))}
+                        </ul>
                       ) : (
-                        <span> - Nenhum usuário atribuído</span>
+                        <p>Nenhum usuário atribuído</p>
                       )}
                     </li>
-                  ))}
+                  ))
+                ) : (
+                  <li>Nenhuma subcategoria encontrada.</li>
+                )}
+
                 </ul>
               </Accordion.Body>
             </Accordion.Item>
