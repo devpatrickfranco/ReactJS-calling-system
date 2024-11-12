@@ -30,7 +30,7 @@ function AuthenticateProvider({ children }) {
     // user login
     async function signIn(email, password) {
         setLoadingAuthenticate(true)
-
+        
         await dbFirebase.auth().signInWithEmailAndPassword(email, password)
         .then( async (value) => {
             const uid = value.user.uid
@@ -84,10 +84,9 @@ function AuthenticateProvider({ children }) {
                     role: role
                 }
 
-                setUser(data)
-                storageUser(data)
+                
                 setLoadingAuthenticate(false)
-                toast.success('Bem vindo a Plataforma')
+                toast.success('Usuario Criado Com Sucesso!')
             })
        }).catch((error) => {
             console.log(error)
