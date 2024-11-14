@@ -11,6 +11,7 @@ import Resolved from '../pages/Resolved';
 import Users from '../pages/Users'
 import Category from '../pages/Category'
 import TesteCategory from '../pages/Category/category'
+import CalendarPage from '../pages/Calendar';
 
 export default function AppRoutes() {
   return (
@@ -26,6 +27,7 @@ export default function AppRoutes() {
       <Route path='/category'element={<RouterWrapper element={Category} isPrivate />} />
       <Route path='/users'element={<RouterWrapper element={Users} isPrivate />} />
       <Route path='/teste'element={<RouterWrapper element={TesteCategory} isPrivate />} />
+      <Route path='/calendar'element={<RouterWrapper element={CalendarPage} isPrivate />} />
 
     </Routes>
   );

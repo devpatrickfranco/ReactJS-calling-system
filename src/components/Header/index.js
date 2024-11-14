@@ -2,7 +2,7 @@ import { useContext } from 'react'
 import './header.css'
 import { AuthenticateContext } from '../../contexts/authenticate'
 import avatar from  '../../assets/avatar.jpg'
-import { FiHome, FiUser, FiUsers, FiSettings } from "react-icons/fi";
+import { FiHome, FiUser, FiUsers, FiSettings, FiCalendar } from "react-icons/fi";
 import { TbCategoryPlus } from "react-icons/tb";
 
 import { Link } from 'react-router-dom'
@@ -20,6 +20,10 @@ export default function Header(){
             <Link to='/dashboard'>
                 <FiHome color='#FFF' size={24} /> 
                 Chamados
+            </Link>
+            <Link to='/calendar'>
+                <FiCalendar color='#FFF' size={24} /> 
+                Calendario
             </Link>
             {user && hasPermission(user, 'superAdmin') && (
                 <Link to='/customers'>
