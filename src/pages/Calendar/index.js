@@ -6,7 +6,6 @@ import moment from 'moment';
 
 import { dbFirebase } from '../../services/firebaseConnection';
 import { AuthenticateContext } from '../../contexts/authenticate';
-import { fetchEvents } from '../../useCase/firebaseServiceCalender';
 import Header from '../../components/Header/';
 import Title from '../../components/Title';
 import avatar from '../../assets/avatar.jpg';
@@ -57,6 +56,8 @@ export default function CalendarPage() {
     assignedUsers: [],
   });
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [showDeleteEventModalOpen, setShowDeleteEventModalOpen] = useState(false)
+  const [selectedEvents, setSelectedEvents] = useState([]);
 
   // Carregar usuários do Firestore
   useEffect(() => {
@@ -87,26 +88,82 @@ export default function CalendarPage() {
   useEffect(() => {
     const loadEvents = async () => {
       try {
-        const eventos = await fetchEvents();
-        setEvents(eventos);
+        const auth = dbFirebase.auth();
+        const userLoaded = new Promise((resolve, reject) => {
+          const unsubscribe = auth.onAuthStateChanged((user) => {
+            unsubscribe();
+            if (user) resolve(user);
+            else reject('Usuário não autenticado');
+          });
+        });
+  
+        const currentUser = await userLoaded;
+        const userId = currentUser.uid; // Pega o ID do usuário autenticado
+  
+        // Carregar todos os eventos
+        const snapshot = await dbFirebase.firestore().collection('eventos').get();
+  
+        // Filtrar os eventos no frontend verificando se o userId está em assignedUsers
+        const eventos = snapshot.docs
+          .map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+          }))
+          .filter(event => {
+            // Verificar se o userId está presente no array de assignedUsers
+            return event.assignedUsers.some(user => user.userId === userId);
+          });
+  
+        setEvents(eventos); // Atualizar o estado com os eventos filtrados
       } catch (error) {
         console.error('Erro ao carregar eventos:', error);
       }
     };
-
+  
     loadEvents();
   }, []);
-
+  
   // Abrir o modal com os detalhes do evento
   const handleEventClick = (event) => {
     setEventDetails(event);
     setIsModalOpen(true);
+    
+  };
+
+  // Atualizar seleção de eventos no modal de exclusão
+  const toggleEventSelection = (eventId) => {
+    setSelectedEvents((prevSelected) =>
+      prevSelected.includes(eventId)
+        ? prevSelected.filter((id) => id !== eventId)
+        : [...prevSelected, eventId]
+    );
+  };
+
+  // Excluir eventos selecionados
+  const handleDeleteSelectedEvents = async () => {
+    try {
+      const batch = dbFirebase.firestore().batch();
+
+      selectedEvents.forEach((eventId) => {
+        const eventRef = dbFirebase.firestore().collection('eventos').doc(eventId);
+        batch.delete(eventRef);
+      });
+
+      await batch.commit();
+      setEvents(events.filter((event) => !selectedEvents.includes(event.id)));
+      setSelectedEvents([]);
+      alert('Eventos excluídos com sucesso!');
+      closeModal();
+    } catch (error) {
+      console.error('Erro ao excluir eventos:', error);
+    }
   };
 
   // Fechar o modal
   const closeModal = () => {
     setIsModalOpen(false);
     setEventDetails(null);
+    setShowDeleteEventModalOpen(false)
   };
 
   // Atualizar dados do evento no estado
@@ -176,11 +233,13 @@ export default function CalendarPage() {
         </Title>
 
         {user && hasPermission(user, 'admin') && (
-          <div className="btns" onClick={() => setShowModal(true)} style={{ display: 'flex', justifyContent: 'end', marginRight: '10px' }}>
-            <Button variant="primary">Adicionar Evento</Button>
-            <div className="btns" onClick={() => setShowModal(true)} style={{ display: 'flex', justifyContent: 'end' }}>
-            <Button variant="danger">Cancelar Evento</Button>
-          </div>    
+          <div className="btns" style={{ display: 'flex', justifyContent: 'end', marginRight: '10px' }}>
+            <Button variant="primary" onClick={() => setShowModal(true)}>
+              Adicionar Evento
+            </Button>
+            <Button variant="danger" onClick={() => setShowDeleteEventModalOpen(true)}>
+              Cancelar Evento
+            </Button>
           </div>
         )}
 
@@ -340,6 +399,35 @@ export default function CalendarPage() {
             </Tab.Container>
           </Modal.Body>
         </Modal>
+
+        {/* Modal para deletar evento */}
+        <Modal size="lg" show={showDeleteEventModalOpen} onHide={closeModal}>
+          <Modal.Header closeButton>
+            <Modal.Title>Excluir Eventos</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <h5>Selecione os eventos para excluir:</h5>
+            <ul>
+              {events.map((event) => (
+                <li key={event.id}>
+                  <Form.Check
+                    type="checkbox"
+                    label={event.title}
+                    onChange={() => toggleEventSelection(event.id)}
+                    checked={selectedEvents.includes(event.id)}
+                  />
+                </li>
+              ))}
+            </ul>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="danger" onClick={handleDeleteSelectedEvents}>
+              Excluir Selecionados
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+                  
 
         {/* Calendário */}
         <Calendar

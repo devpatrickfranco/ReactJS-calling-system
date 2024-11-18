@@ -1,278 +1,223 @@
-import { useState, useEffect, useContext } from "react"
-import { useParams } from 'react-router-dom'
-import { FiPlusCircle } from 'react-icons/fi'
-import { toast } from 'react-toastify'
+import { useState, useEffect, useContext } from "react";
+import { FiPlusCircle } from "react-icons/fi";
+import { toast } from "react-toastify";
+import Header from "../../components/Header";
+import Title from "../../components/Title";
+import { AuthenticateContext } from "../../contexts/authenticate";
+import { dbFirebase } from "../../services/firebaseConnection";
+import "./newchamado.css";
 
-import Header from "../../components/Header"
-import Title from "../../components/Title"
-import Modal from '../../components/Modal'
-import { AuthenticateContext } from "../../contexts/authenticate"
-import { dbFirebase } from "../../services/firebaseConnection"
-import './newchamado.css'
+export default function NewChamado() {
+  const [categories, setCategories] = useState([]);
+  const [categorySelected, setCategorySelected] = useState(0);
 
-export default function NewChamado(){
-    const { id } = useParams()
+  const [subcategories, setSubcategories] = useState([]);
+  const [subcategorySelected, setSubcategorySelected] = useState(0);
 
-    const [loadCustomers, setLoadCustomers] = useState(true)
-    const [customers, setCustomers] = useState([]) 
-    const [customersSelected, setCustomersSelected] = useState(0)
+  const [status, setStatus] = useState("aberto");
+  const [prioridade, setPrioridade] = useState("baixa");
+  const [complemento, setComplemento] = useState("");
 
-    const [assunto, setAssunto] = useState('Trafego Pago')
-    const [status, setStatus] = useState('aberto')
-    const [prioridade, setPrioridade] = useState('baixa')  // Novo estado para prioridade
-    const [complemento, setComplemento] = useState('')
-    
-    const [idCustomer, setIdCustomer] = useState(false)
+  const [chamados, setChamados] = useState([]);
+  const { user } = useContext(AuthenticateContext);
 
-    const { user } = useContext(AuthenticateContext)
-
-    const { hasPermission } = useContext(AuthenticateContext);
-
-    useEffect(() => {
-        async function loadCustomers(){
-            await dbFirebase.firestore().collection('customers')
-            .get()
-            .then((snapshot) => {
-                const list = []
-                snapshot.forEach((doc) => { 
-                    list.push({
-                        id: doc.id,
-                        nomeFantasia: doc.data().nomeFantasia
-                    })
-                })
-
-                if(list.length === 0){
-                    console.log('Nenhuma Empresa encontrada')
-                    setCustomers([{ id: '1', nomeFantasia: '' }])
-                    setLoadCustomers(false)
-                    return
-                }
-
-                setCustomers(list)
-                setLoadCustomers(false)
-
-                if(id){
-                    loadId(list)
-                }
-                
-            }).catch((error) => {
-                console.log('Erro na busca de customers', error)
-                setLoadCustomers(false)
-                setCustomers([{ id: '1', nomeFantasia: '' }])
-            })
-        }   
-        loadCustomers()
-    }, [id]) 
-
-    async function loadId(list){
-        await dbFirebase.firestore().collection('chamados').doc(id)
-        .get()
-        .then((snapshot) => {
-            setAssunto(snapshot.data().assunto)
-            setStatus(snapshot.data().status)
-            setPrioridade(snapshot.data().prioridade || 'baixa') // Carrega a prioridade, com padrão 'baixa'
-            setComplemento(snapshot.data().complemento || '')
-
-            const index = list.findIndex(item => item.id === snapshot.data().clienteId)
-            setCustomersSelected(index >= 0 ? index : 0)
-            setIdCustomer(true)
-        
-        })
-        .catch((err) => {
-            console.log('Erro ao encontrar o chamado', err)
-            setCustomers([])
-            setIdCustomer(false)
-        })
+  // Carregar categorias
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const snapshot = await dbFirebase.firestore().collection("category").get();
+        const list = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          nome: doc.data().nome,
+        }));
+        setCategories(list);
+      } catch (error) {
+        console.error("Erro ao buscar categorias:", error);
+        setCategories([]);
+      }
     }
+    loadCategories();
+  }, []);
 
-    async function handleNewChamado(e){
-        e.preventDefault()
+  // Carregar subcategorias
+  useEffect(() => {
+    async function loadSubcategories() {
+      if (!categories.length) return;
+      try {
+        const categoryId = categories[categorySelected].id;
+        const snapshot = await dbFirebase.firestore()
+          .collection("category")
+          .doc(categoryId)
+          .collection("subcategories")
+          .get();
 
-        if(idCustomer){
-            await dbFirebase.firestore().collection('chamados')
-            .doc(id)
-            .update({
-                cliente: customers[customersSelected].nomeFantasia,
-                clienteId: customers[customersSelected].id,
-                assunto: assunto,
-                status: status,
-                prioridade: prioridade,  // Salva a prioridade
-                complemento: complemento,
-                userId: user.uid
-            })
-            .then(() =>{
-                toast.success('Chamado editado com sucesso!')
-                setCustomersSelected(0)
-                setComplemento('')
-            })
-            .catch((err) => {
-                toast.error('Erro ao editar o chamado')
-            })
-
-            return
-        }
-
-        await dbFirebase.firestore().collection('chamados')
-        .add({
-            created: new Date(),
-            cliente: customers[customersSelected].nomeFantasia,
-            clienteId: customers[customersSelected].id,
-            assunto: assunto,
-            status: status,
-            prioridade: prioridade,  // Adiciona a prioridade
-            complemento: complemento,
-            userId: user.uid
-        }).then(() => {
-            toast.success('Chamado Criado com Sucesso')
-            setCustomersSelected(0)
-            setComplemento('')
-        })
-        .catch((err) => {
-            toast.error('Erro ao criar o chamado!')
-            console.log(err)
-        })
+        const list = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          nome: doc.data().nome,
+          users: doc.data().users || [],
+        }));
+        setSubcategories(list);
+      } catch (error) {
+        console.error("Erro ao carregar subcategorias:", error);
+        setSubcategories([]);
+      }
     }
+    loadSubcategories();
+  }, [categorySelected, categories]);
 
-    function handleSelect(e){
-        setAssunto(e.target.value)
+  // Carregar chamados
+  useEffect(() => {
+    async function loadChamados() {
+      try {
+        const snapshot = await dbFirebase.firestore().collection("chamados").get();
+        const filteredChamados = snapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() }))
+          .filter(
+            (chamado) =>
+              chamado.criadoPor === user.uid || // Criado pelo usuário autenticado
+              chamado.users?.some((u) => u.id === user.uid) // Usuário atribuído
+          );
+        setChamados(filteredChamados);
+      } catch (error) {
+        console.error("Erro ao carregar chamados:", error);
+        setChamados([]);
+      }
     }
+    loadChamados();
+  }, [user.uid]);
 
-    function handleOptionChange(e){
-        setStatus(e.target.value)
+  // Criar novo chamado
+  async function handleNewChamado(e) {
+    e.preventDefault();
+  
+    try {
+      // Obter o maior código atual
+      const snapshot = await dbFirebase.firestore().collection("chamados").orderBy("codigo", "desc").limit(1).get();
+      const lastChamado = snapshot.docs[0]?.data();
+      const nextCodigo = lastChamado ? lastChamado.codigo + 1 : 1;
+  
+      const data = {
+        created: new Date(),
+        category: categories[categorySelected].nome,
+        categoryId: categories[categorySelected].id,
+        subcategory: subcategories[subcategorySelected]?.nome || "",
+        subcategoryId: subcategories[subcategorySelected]?.id || "",
+        status,
+        prioridade,
+        complemento,
+        criadoPor: user.uid,
+        users: subcategories[subcategorySelected]?.users || [],
+        codigo: nextCodigo, // Adiciona o campo código
+      };
+  
+      await dbFirebase.firestore().collection("chamados").add(data);
+      toast.success("Chamado criado com sucesso!");
+      setComplemento("");
+    } catch (error) {
+      console.error("Erro ao criar chamado:", error);
+      toast.error("Erro ao criar chamado.");
     }
+  }
+  
 
-    function handlePriorityChange(e){
-        setPrioridade(e.target.value)
-    }
+  return (
+    <div>
+      <Header />
+      <div className="content">
+        <Title name="Novo Chamado">
+          <FiPlusCircle size={24} />
+        </Title>
 
-    function handleChangeCustomers(e){
-        setCustomersSelected(e.target.value)
-    }
+        <div className="container">
+          <form className="form-profile" onSubmit={handleNewChamado}>
+            <label>Categoria</label>
+            <select value={categorySelected} onChange={(e) => setCategorySelected(Number(e.target.value))}>
+              {categories.length ? (
+                categories.map((cat, index) => (
+                  <option key={cat.id} value={index}>
+                    {cat.nome}
+                  </option>
+                ))
+              ) : (
+                <option>Carregando...</option>
+              )}
+            </select>
 
-    // Função para alterar o status do chamado para "atendimento"
-    async function openCallButton() {
-        try {
-            // Atualiza o estado local para "atendimento"
-            setStatus('atendimento');
-            
-            // Atualiza o Firestore para refletir o novo status
-            await dbFirebase.firestore().collection('chamados')
-                .doc(id)
-                .update({
-                    status: 'atendimento'
-                });
-            
-            toast.info('Chamado Em Atendimento!');
-        } catch (error) {
-            console.error('Erro ao atualizar o status do chamado:', error);
-            toast.error('Erro ao abrir o chamado.');
-        }
-    }
-    
-    async function finalizeCallButton() {
-        try {
-            setStatus('finalizado'); // Atualiza o estado local para "finalizado"
-    
-            await dbFirebase.firestore().collection('chamados')
-                .doc(id)
-                .update({
-                    status: 'finalizado'
-                });
-    
-            toast.info('Chamado finalizado com sucesso!');
-        } catch (error) {
-            console.error('Erro ao finalizar o chamado:', error);
-            toast.error('Erro ao finalizar o chamado.');
-        }
-    }
-    
+            <label>Subcategoria</label>
+            <select value={subcategorySelected} onChange={(e) => setSubcategorySelected(Number(e.target.value))}>
+              {subcategories.length ? (
+                subcategories.map((subcat, index) => (
+                  <option key={subcat.id} value={index}>
+                    {subcat.nome}
+                  </option>
+                ))
+              ) : (
+                <option>Nenhuma subcategoria encontrada</option>
+              )}
+            </select>
 
-    return (
-        <div>
-            <Header />
-            <div className="content">
-                <Title name={id ? 'Editar Chamado' : 'Novo Chamado'}>
-                    <FiPlusCircle size={24}/>
-                </Title>
+            <label>Status</label>
+            <select value={status} onChange={(e) => setStatus(e.target.value)}>
+              <option value="aberto">Aberto</option>
+              <option value="atendimento">Em Atendimento</option>
+              <option value="finalizado">Finalizado</option>
+            </select>
 
-                <div className="container">
-            
-                    <form className="form-profile" onSubmit={handleNewChamado}>
-                        <label>Cliente</label>
-                        {loadCustomers ? (
-                            <input type="text" disabled={true} value={'Carregando itens...'} />
-                        ) : (
-                            <select value={customersSelected} onChange={handleChangeCustomers}>
-                                {customers.map((item, index) => (
-                                    <option key={item.id} value={index}>
-                                        {item.nomeFantasia}
-                                    </option> 
-                                ))}
-                            </select>
-                        )}
-
-                        <label>Assunto</label>
-                        <select value={assunto} onChange={handleSelect}>
-                            <option value={'Trafego Pago'}>Trafego Pago</option>
-                            <option value={'Midias Sociais'}>Midias Sociais</option>
-                            <option value={'Site / Google'}>Site / Google</option>
-                        </select>
-
-                        <label>Prioridade</label>
-                        <div className="status">
-                            <input 
-                                name="prioridade"
-                                type="radio"
-                                value={'baixa'}
-                                onChange={handlePriorityChange}
-                                checked={prioridade === 'baixa'}
-                            />
-                            <span>Baixa</span>
-
-                            <input
-                                name="prioridade"
-                                type="radio"
-                                value={'media'}
-                                onChange={handlePriorityChange}
-                                checked={prioridade === 'media'}
-                            />
-                            <span>Média</span>
-                            
-                            <input
-                                name="prioridade"
-                                type="radio"
-                                value={'alta'}
-                                onChange={handlePriorityChange}
-                                checked={prioridade === 'alta'}
-                            />
-                            <span>Alta</span>
-                        </div>
-
-                        <label>Complemento</label>
-                        <textarea
-                            type="text"
-                            placeholder="Descreva em detalhes a ajuda que precisa"
-                            onChange={(e) => setComplemento(e.target.value)}
-                            value={complemento}
-                        />
-                           
-                                <button type="submit">
-                                    {id ? 'Salvar Chamado' : 'Criar Chamado'}
-                                </button>
-                    </form>
-
-                            {user && id && hasPermission(user, 'Admin') && (
-                            <>
-                                {status === 'aberto' && (
-                                    <button onClick={openCallButton}>Abrir Chamado</button>
-                                )}
-                                {status === 'atendimento' && (
-                                    <button onClick={finalizeCallButton}>Finalizar Chamado</button>
-                                )}
-                            </>
-                        )}
-                </div>
+            <label>Prioridade</label>
+            <div className="status">
+              <input
+                name="prioridade"
+                type="radio"
+                value="baixa"
+                onChange={(e) => setPrioridade(e.target.value)}
+                checked={prioridade === "baixa"}
+              />
+              <span>Baixa</span>
+              <input
+                name="prioridade"
+                type="radio"
+                value="media"
+                onChange={(e) => setPrioridade(e.target.value)}
+                checked={prioridade === "media"}
+              />
+              <span>Média</span>
+              <input
+                name="prioridade"
+                type="radio"
+                value="alta"
+                onChange={(e) => setPrioridade(e.target.value)}
+                checked={prioridade === "alta"}
+              />
+              <span>Alta</span>
             </div>
-        </div> 
-    )
+
+            <label>Complemento</label>
+            <textarea
+              placeholder="Descreva em detalhes a ajuda que precisa"
+              value={complemento}
+              onChange={(e) => setComplemento(e.target.value)}
+            />
+
+            <button type="submit">Criar Chamado</button>
+          </form>
+
+          <div className="chamados-list">
+            <h3>Meus Chamados</h3>
+            <ul>
+              {chamados.length ? (
+                chamados.map((chamado) => (
+                  <li key={chamado.id}>
+                    <strong>{chamado.category} - {chamado.subcategory}</strong>
+                    <p>{chamado.complemento}</p>
+                  </li>
+                ))
+              ) : (
+                <li>Nenhum chamado encontrado.</li>
+              )}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
