@@ -27,7 +27,7 @@ export default function AppRoutes() {
       <Route path='/category'element={<RouterWrapper element={Category} isPrivate />} />
       <Route path='/users'element={<RouterWrapper element={Users} isPrivate />} />
       <Route path='/teste'element={<RouterWrapper element={TesteCategory} isPrivate />} />
-      <Route path='/calendar'element={<RouterWrapper element={CalendarPage} isPrivate />} />
+      <Route path='/calendar'element={<RouterWrapper element={CalendarPage}  />} />
 
     </Routes>
   );

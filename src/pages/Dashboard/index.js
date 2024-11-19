@@ -56,7 +56,7 @@ export default function Dashboard() {
         <Title name="Meus Chamados">
           <FiPlusCircle size={24} />
         </Title>
-
+        
         <div className="container">
           <Table striped bordered hover>
             <thead>
