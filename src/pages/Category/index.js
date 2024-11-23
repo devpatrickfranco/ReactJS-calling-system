@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Button, Form, Row, Col, Accordion } from 'react-bootstrap';
 import { TbCategoryPlus } from 'react-icons/tb';
 import { addCategory, addSubcategory, assignUserToSubcategory, editCategory, editSubcategory, deleteCategory, deleteSubcategory, removeUserFromSubcategory, useCategoriesAndSubcategories } from '../../useCase/firebaseServicesCategory';
+
 import Title from "../../components/Title";
+import Spinner from '../../components/Spinner'
 
 import Header from "../../components/Header";
 
@@ -108,7 +110,7 @@ const CategoryAccordion = () => {
   
 
   if (loading) {
-    return <div>Carregando...</div>;
+    return <div><Spinner/></div>;
   }
 
   return (

@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AuthenticateContext } from '../contexts/authenticate'
+import Spinner from '../components/Spinner'
 
 export default function RouterWrapper({
   element: Element,
@@ -11,7 +12,7 @@ export default function RouterWrapper({
   const { signed, loading } = useContext(AuthenticateContext)
 
   if (loading) {
-    return <div>Loading...</div>; // Pode adicionar um loader aqui
+    return <div><Spinner/></div>; // Pode adicionar um loader aqui
   }
 
   if (!signed && isPrivate) {

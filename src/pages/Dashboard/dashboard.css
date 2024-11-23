@@ -1,4 +1,34 @@
 
+.btn-container{
+    gap: 15px;
+    display: flex;
+    justify-content: end;
+    margin-right: 4px;
+}
+
+.btn-container button {
+    border: solid 1px   ;
+    
+}
+
+.new-btn{
+    width: 200px;
+    height: 60px;
+    border-radius: 7px;
+    color: #754FFE;
+    background-color: #FFF;
+    padding: 5px;
+}
+
+.close-btn{
+    width: 200px;
+    height: 60px;
+    border-radius: 7px;
+    color: #E24B4B;
+    background-color: #FFF;
+    padding: 5px;
+}
+
 .dashboard {
     display: flex;
     justify-content: center;

@@ -29,7 +29,7 @@ export default function Modal({conteudo, close}){
         <div className='modal'>
             <div className='container'>
                 <button className='close' onClick={close}>
-                    <FiX size={24} color='#fff'/>
+                    <FiX size={24} color='#3583f6'/>
                     Voltar
                 </button>
 

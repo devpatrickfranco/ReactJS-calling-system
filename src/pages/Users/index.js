@@ -4,6 +4,7 @@ import { FiUsers } from 'react-icons/fi';
 
 import Header from '../../components/Header';
 import Title from '../../components/Title';
+import Spinner from '../../components/Spinner'
 import { useUsers, deleteUser } from '../../useCase/firebaseServicesUser'; // Supondo que você tenha esse hook para pegar os usuários
 import { AuthenticateContext } from '../../contexts/authenticate';
 
@@ -33,7 +34,7 @@ export default function Users() {
     };
 
     if (loading) {
-        return <div>Carregando...</div>;
+        return <div><Spinner/></div>;
     }
 
     if (error) {

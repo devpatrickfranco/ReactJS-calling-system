@@ -1,13 +1,54 @@
-.container-center{
+.helpers {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    background-color: white;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1); /* Sombra sutil para parecer uma linha */
+    padding: 10px 20px; /* Margem interna */
+    margin-bottom: 10px;
+}
+
+.contacts {
+    display: flex;
+    gap: 15px;
+    margin: 0 120px;
+}
+
+.contacts span {
+    display: flex;
+    align-items: center; /* Centraliza ícone e texto verticalmente */
+    gap: 5px; /* Espaçamento entre o ícone e o texto */
+}
+
+.contacts p {
+    font-family: 'Inter', sans-serif;
+    font-weight: 450;
+    color: #1E293B;
+    margin: 0; /* Remove margens padrão do parágrafo */
+    line-height: 1; /* Garante que a altura da linha esteja ajustada */
+}
+
+.social-icons {
+    display: flex;
+    gap: 15px;
+    margin: 0 120px;
+}
+
+.social-icons a {
+    text-decoration: none; /* Remove underline */
+}
+
+.container-center {
     height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #121212;
+    background-color: #ffffff;
 }
 
-.login{
-    background-color: #eaeaec;
+.login {
+    background-color: #fff;
     width: 600px;
     display: flex;
     align-items: center;
@@ -15,11 +56,22 @@
     flex-direction: column;
 }
 
-.login-area{
-    display: flex;
-    justify-content: center;
-    background-color: #181c2e;
+.login-area {
     width: 100%;
+    color: #676C7D;
+}
+
+.login-area h3 {
+    font-size: 34px;
+    font-weight: 700;
+}
+
+.login-area p {
+    font-size: 15px;
+}
+
+.login-area span {
+    color: #754FFE;
 }
 
 .login-area img {
@@ -28,36 +80,54 @@
     height: 130px;
 }
 
-form{
+form {
     margin-top: 1.5em;
-    width: 90%;
+    width: 100%; /* Ajusta a largura do formulário */
     display: flex;
     flex-direction: column;
+    align-items: flex-start; /* Alinha todos os itens ao início (flex-start) */
 }
 
-form h1 { 
-    text-align: center;
-    margin-bottom: 0.5em;
-    color: #181c2e
+form h5 {
+    color: #6E798A;
+    margin-bottom: 20px;
+    align-self: flex-start; /* Alinha o h5 ao início do formulário */
 }
 
 .login input {
-    margin-bottom: 0.5em;
-    height: 35px;
+    margin-bottom: 1.5em;
+    height: 50px; /* Ajuste a altura do input para mais espaço */
     border: 0;
-    border-radius: 7px;
-    padding: 10px;
-    font-size: 15px;
-    background-color: #fff;
+    border-radius: 11px;
+    padding: 14px 48px 13px 48px; /* Espaçamento para os ícones */
+    font-size: 14px;
+    background-color: #6e798a1c; /* Fundo com opacidade mais clara */
+    color: #6E798A; /* Cor do texto digitado */
+    caret-color: #6E798A; /* Cor do cursor */
+    font-weight: 400;
+    width: 100%; /* Faz o input ocupar 100% do formulário */
+    box-sizing: border-box; /* Inclui padding e borda na largura */
 }
 
-form button{
-    height: 35px;
+.login input::placeholder {
+    color: #6E798A; /* Cor do placeholder */
+    opacity: 1; /* Mantém o placeholder visível */
+}
+
+form button {
+    height: 50px;
     border: 0;
     border-radius: 4px;
-    background-color: #181c2e;
+    background-color: #754FFE;
     color: #fff;
     font-size: 1.3em;
+    width: 100%; /* Faz o botão ocupar 100% do formulário */
+    transition: all 0.3s ease; /* Transição suave para todos os efeitos */
+}
+
+form button:hover {
+    transform: translateY(-3px); /* Move o botão para cima ao passar o mouse */
+    background-color: #5e40cc; /* Altera a cor de fundo durante o hover */
 }
 
 .login a {
@@ -66,3 +136,31 @@ form button{
     cursor: pointer;
 }
 
+/* Estilização dos ícones */
+.input-wrapper {
+    position: relative;
+    width: 100%; /* Faz a largura dos inputs ocupar 100% do formulário */
+}
+
+.input-wrapper .icon {
+    position: absolute;
+    left: 15px;
+    top: 34%; /* Alinha o ícone na vertical centralizado */
+    transform: translateY(-50%); /* Ajuste fino para centralizar verticalmente */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6E798A;
+}
+
+.input-wrapper .toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 34%; /* Alinha o ícone da senha na vertical centralizado */
+    transform: translateY(-50%); /* Ajuste fino para centralizar verticalmente */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6E798A;
+}

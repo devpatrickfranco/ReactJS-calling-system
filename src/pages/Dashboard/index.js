@@ -53,10 +53,15 @@ export default function Dashboard() {
     <div>
       <Header />
       <div className="content">
-        <Title name="Meus Chamados">
-          <FiPlusCircle size={24} />
+        <Title name="Chamados">
+          <FiPlusCircle size={24} color="#754FFE" />
         </Title>
-        
+
+        <div className="btn-container">
+          <button className="new-btn"> NOVO CHAMADO</button>
+          <button className="close-btn"> CHAMADOS RESOLVIDOS</button>
+        </div>
+
         <div className="container">
           <Table striped bordered hover>
             <thead>

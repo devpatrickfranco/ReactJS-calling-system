@@ -10,9 +10,8 @@ const firebaseConfig = {
   storageBucket: "call-system-af3ec.appspot.com",
   messagingSenderId: "221533578144",
   appId: "1:221533578144:web:2532bd7dd1373941fe7ac5",
-  measurementId: "G-1S9M5YHVTX",
+  measurementId: "G-1S9M5YHVTX"
 };
-
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
