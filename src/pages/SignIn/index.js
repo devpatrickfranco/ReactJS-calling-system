@@ -1,5 +1,4 @@
 import { useState, useContext } from 'react';
-import { Link } from 'react-router-dom'
 
 import { FaPhoneAlt } from "react-icons/fa";
 import { IoMail } from "react-icons/io5";

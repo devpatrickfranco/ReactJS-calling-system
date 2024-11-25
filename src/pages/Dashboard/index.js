@@ -199,7 +199,7 @@ export default function Dashboard() {
 
   <div className="modal-item">
     <h5 className="modal-title">Descrição:</h5>
-    <p className="modal-info">{selectedChamado?.complemento}</p>
+    <p className="modal-info" dangerouslySetInnerHTML={{ __html: selectedChamado?.complemento }} />
   </div>
 </Modal.Body>
 

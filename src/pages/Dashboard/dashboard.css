@@ -265,7 +265,7 @@
   }
   
 /* Estilo para Prioridade dentro do Modal */
-.modal-body-container .priority-urgente {
+.modal-body-container .priority-alta {
   background-color: #FF686B; /* Urgente */
   color: white;
   border-radius: 7px;

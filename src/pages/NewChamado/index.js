@@ -2,11 +2,15 @@ import { useState, useEffect, useContext } from "react";
 import { FiPlusCircle } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useParams } from 'react-router-dom' 
+import ReactQuill from 'react-quill';
+import { Quill } from 'react-quill'
 import Header from "../../components/Header";
 import Title from "../../components/Title";
 import { AuthenticateContext } from "../../contexts/authenticate";
 import { dbFirebase } from "../../services/firebaseConnection";
+
 import "./newchamado.css";
+import 'react-quill/dist/quill.snow.css'; // Estilo padrão do React Quill
 
 export default function NewChamado() {
   const [categories, setCategories] = useState([]);
@@ -22,6 +26,41 @@ export default function NewChamado() {
   const [chamados, setChamados] = useState([]);
   const { user } = useContext(AuthenticateContext);
   const { id } = useParams()
+
+    // Função de handler para o upload de imagens
+    const handleImageUpload = async (file) => {
+      const storageRef = dbFirebase.storage().ref();
+      const fileRef = storageRef.child(`images/${file.name}`);
+      await fileRef.put(file);
+      const url = await fileRef.getDownloadURL();
+      return url;
+    };
+
+    const modules = {
+      toolbar: [
+        [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'align': [] }],
+        ['bold', 'italic', 'underline'],
+        ['link', 'image'], // Permitir imagens
+      ],
+      imageHandler: async (event) => {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'image/*');
+        input.click();
+  
+        input.onchange = async () => {
+          const file = input.files[0];
+          if (file) {
+            const imageUrl = await handleImageUpload(file);
+            const range = this.quill.getSelection();
+            this.quill.insertEmbed(range.index, 'image', imageUrl);
+          }
+        };
+      },
+    };
+
   // Carregar categorias
   useEffect(() => {
     async function loadCategories() {
@@ -142,94 +181,57 @@ export default function NewChamado() {
           <FiPlusCircle size={24} />
         </Title>
 
-        <div className="container">
-          <form className="form-profile" onSubmit={handleNewChamado}>
-            <label>Categoria</label>
-            <select value={categorySelected} onChange={(e) => setCategorySelected(Number(e.target.value))}>
-              {categories.length ? (
-                categories.map((cat, index) => (
-                  <option key={cat.id} value={index}>
-                    {cat.nome}
-                  </option>
-                ))
-              ) : (
-                <option>Carregando...</option>
-              )}
-            </select>
-
-            <label>Subcategoria</label>
-            <select value={subcategorySelected} onChange={(e) => setSubcategorySelected(Number(e.target.value))}>
-              {subcategories.length ? (
-                subcategories.map((subcat, index) => (
-                  <option key={subcat.id} value={index}>
-                    {subcat.nome}
-                  </option>
-                ))
-              ) : (
-                <option>Nenhuma subcategoria encontrada</option>
-              )}
-            </select>
-
-            <label>Status</label>
-            <select value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="aberto">Aberto</option>
-              <option value="atendimento">Em Atendimento</option>
-              <option value="finalizado">Finalizado</option>
-            </select>
-
-            <label>Prioridade</label>
-            <div className="status">
-              <input
-                name="prioridade"
-                type="radio"
-                value="baixa"
-                onChange={(e) => setPrioridade(e.target.value)}
-                checked={prioridade === "baixa"}
-              />
-              <span>Baixa</span>
-              <input
-                name="prioridade"
-                type="radio"
-                value="media"
-                onChange={(e) => setPrioridade(e.target.value)}
-                checked={prioridade === "media"}
-              />
-              <span>Média</span>
-              <input
-                name="prioridade"
-                type="radio"
-                value="alta"
-                onChange={(e) => setPrioridade(e.target.value)}
-                checked={prioridade === "alta"}
-              />
-              <span>Alta</span>
+        <div className="selects-chamado">
+          <form className="form-chamado" onSubmit={handleNewChamado}>    
+            <div className="select-categoria">
+              <label>Categoria</label>
+              <select value={categorySelected} onChange={(e) => setCategorySelected(Number(e.target.value))}>
+                {categories.length ? (
+                  categories.map((cat, index) => (
+                    <option key={cat.id} value={index}>
+                      {cat.nome}
+                    </option>
+                  ))
+                ) : (
+                  <option>Carregando...</option>
+                )}
+              </select>
             </div>
 
-            <label>Complemento</label>
-            <textarea
-              placeholder="Descreva em detalhes a ajuda que precisa"
+            <div className="select-subcategoria">
+              <label>Subcategoria</label>
+              <select value={subcategorySelected} onChange={(e) => setSubcategorySelected(Number(e.target.value))}>
+                {subcategories.length ? (
+                  subcategories.map((subcat, index) => (
+                    <option key={subcat.id} value={index}>
+                      {subcat.nome}
+                    </option>
+                  ))
+                ) : (
+                  <option>Nenhuma subcategoria encontrada</option>
+                )}
+              </select>
+            </div>
+
+            <div className="select-prioridade">
+              <label>Prioridade</label>
+              <select value={prioridade} onChange={(e) => setPrioridade(e.target.value)}>
+                <option value="baixa">Baixa</option>
+                <option value="media">Média</option>
+                <option value="alta">Alta</option>
+              </select>
+            </div>
+
+            <div className="editor-container">
+              <label>Desecreva em detelhes que tipo de suporte você precisa. </label>
+              <ReactQuill 
               value={complemento}
-              onChange={(e) => setComplemento(e.target.value)}
-            />
+              onChange={setComplemento}
+              />
+            </div>
 
             <button type="submit">Criar Chamado</button>
           </form>
-
-          <div className="chamados-list">
-            <h3>Meus Chamados</h3>
-            <ul>
-              {chamados.length ? (
-                chamados.map((chamado) => (
-                  <li key={chamado.id}>
-                    <strong>{chamado.category} - {chamado.subcategory}</strong>
-                    <p>{chamado.complemento}</p>
-                  </li>
-                ))
-              ) : (
-                <li>Nenhum chamado encontrado.</li>
-              )}
-            </ul>
-          </div>
         </div>
       </div>
     </div>

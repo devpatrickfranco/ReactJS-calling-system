@@ -1,17 +1,57 @@
-form textarea {
-    height: 115px;
-    resize: none;
-}
-
-form input [type='radio'] {
-    margin: 15px 0;
-}
-
-form input[type='radio']:not(:first-child){
-    margin-left: 15px;
-}
-
-.status span {
-    padding-left: .5em;
-    font-size: 1.3em;
-}
+/* Contêiner principal */
+.selects-chamado {
+    width: 80%;
+    display: flex;
+    justify-content: start;
+  }
+  
+  /* Formulário com grid para alinhar os campos */
+  .form-chamado {
+    display: grid; /* Usando grid para organizar as colunas */
+    grid-template-columns: repeat(3, 1fr); /* 3 colunas iguais */
+    gap: 20px; /* Espaçamento entre as colunas */
+    width: 100%;
+  }
+  
+  /* Alinhamento do label */
+  .form-chamado label {
+    font-size: 18px;
+    font-family: 'Inter', sans-serif;
+    font-weight: bold;
+    color: #1E293B;
+    margin-bottom: 8px;
+    display: block; /* Garante que o label fique em uma linha acima do select */
+  }
+  
+  /* Estilização dos selects */
+  .form-chamado select {
+    height: 50px;
+    border: 0;
+    border-radius: 4px;
+    padding: 14px 48px 13px 48px; /* Espaçamento para ícones */
+    font-size: 14px;
+    background-color: #6e798a1c;
+    color: #6E798A;
+    caret-color: #6E798A;
+    font-weight: 400;
+    width: 100%; /* Faz com que o select ocupe toda a largura disponível */
+    box-sizing: border-box; /* Inclui padding e borda no tamanho total */
+  }
+  
+  /* Editor de texto que ocupa toda a largura */
+  .editor-container {
+    grid-column: 1 / -1; /* Faz o editor ocupar toda a linha */
+    display: flex;
+    flex-direction: column;
+    margin-top: 50px;
+  }
+  
+  .editor-container label {
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+  
+  .selects-chamado button {
+    width: 100%;
+  }
+ 
