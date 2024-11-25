@@ -11,14 +11,36 @@
     
 }
 
-.new-btn{
+.new-btn {
     width: 200px;
     height: 60px;
     border-radius: 7px;
     color: #754FFE;
     background-color: #FFF;
     padding: 5px;
+    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out; /* Transição suave */
 }
+
+.new-btn:hover {
+    background-color: #754FFE;
+    color: #FFF;
+}
+
+.close-btn {
+    width: 200px;
+    height: 60px;
+    border-radius: 7px;
+    color: #E24B4B;
+    background-color: #FFF;
+    padding: 5px;
+    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out; /* Transição suave */
+}
+
+.close-btn:hover {
+    background-color: #E24B4B;
+    color: #FFF;
+}
+
 
 .close-btn{
     width: 200px;
@@ -27,6 +49,12 @@
     color: #E24B4B;
     background-color: #FFF;
     padding: 5px;
+}
+
+.close-btn:hover {
+    background-color: #E24B4B;
+    color: #FFF
+    
 }
 
 .dashboard {
@@ -42,96 +70,270 @@
     font-size: 1.2em;
 }
 
-.new {
-    float: right;
-    margin-bottom: 1.5em;
-    background-color: #83bf02;
-    color: #FFF;
-    border: 0;
-    padding: .5em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 1.1em;
-    border-radius: 5px;
-    transition: ease-in 0.2s;
-    margin-right: 8px;
+/* Estilo para a tabela */
+.table-container {
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    padding: 20px;
+    margin: 20px 0;
+  }
+  
+  /* Estilo para os títulos (th) */
+.table-container .table th {
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 'Inter', sans-serif;
+    text-align: center; /* Alinha o texto centralizado */
+    color: #1E293B
 }
-
-.new svg {
-    margin-right: 5px;
+  
+  /* Estilo para Prioridade */
+  .table-container .table .prioridade-urgente {
+    background-color: #FF686B;
+    color: white;
+    border-radius: 7px;
+    padding: 4px 8px; /* Espaçamento interno */
+    text-align: center; /* Centraliza o texto */
+  }
+  
+  .table-container .table .prioridade-media {
+    background-color: #FAFF68;
+    color: black;
+    border-radius: 7px;
+    padding: 4px 8px;
+    text-align: center;
+    width: auto;
 }
-
-.new:hover {
-    background-color:   #5fd204;
-    transform: scale(1.1);
-}
-
-
-table {
-    border: 1px solid #ccc;
-    border-collapse: collapse;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    table-layout: fixed;
-}
-
-table caption{
-    font-size: 1.5em;
-    margin: .5em 0 .75em
-}
-
-table tr {
-    background-color: #f8f8f8;
-    border: 1px solid #ddd;
-    padding: .35em;
-}
-
-table th,
-table td{
-    padding: .62em;
-    text-align: center; 
-}
-
-table th{
-    font-size: .85em;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-}
-
-table td .action {
-    border: 0;
-    padding: 5px;
-    margin-right: 5px;
-    align-items: center;
+  
+/* Estilo para os títulos (th) */
+.table-container .table th {
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 'Inter', sans-serif;
+    color: #754FFE; /* Cor roxa antiga */
+    text-align: center; /* Centraliza o texto */
+    vertical-align: middle; /* Alinha verticalmente */
+  }
+  
+  /* Estilo para as linhas (tr) */
+  .table-container .table td {
+    text-align: center; /* Centraliza horizontalmente */
+    vertical-align: middle; /* Centraliza verticalmente */
+    color: #1E293B; /* Cor do texto */
+    padding: 12px 8px; /* Ajusta o espaçamento interno */
+    font-family: 'Inter', sans-serif;
+  }
+  
+  /* Estilo para Prioridade */
+  .table-container .table .prioridade-alta {
+    background-color: #FF686B;
+    color: white;
+    border-radius: 7px;
+    padding: 4px 12px;
     display: inline-block;
-    border-radius: 4px;
-}
+    text-align: center;
+    min-width: 80px;
+  }
+  
+  .table-container .table .prioridade-media {
+    background-color: #FAFF68;
+    color: black;
+    border-radius: 7px;
+    padding: 4px 12px;
+    display: inline-block;
+    text-align: center;
+    min-width: 80px;
+  }
+  
+  .table-container .table .prioridade-baixa {
+    background-color: #68FF6D;
+    color: black;
+    border-radius: 7px;
+    padding: 4px 12px;
+    display: inline-block;
+    text-align: center;
+    min-width: 80px;
+  }
+  
+  /* Estilo para Status */
+  .table-container .table .status-aberto {
+    background-color: #5C71F9;
+    color: white;
+    border-radius: 7px;
+    padding: 4px 12px;
+    display: inline-block;
+    text-align: center;
+    min-width: 80px;
+  }
+  
+  .table-container .table .status-atendimento {
+    background-color: #68FF6D;
+    color: black;
+    border-radius: 7px;
+    padding: 4px 12px;
+    display: inline-block;
+    text-align: center;
+    min-width: 80px;
+  }
+  
+  .table-container .table .status-reaberto {
+    background-color: #FF686B;
+    color: white;
+    border-radius: 7px;
+    padding: 4px 12px;
+    display: inline-block;
+    text-align: center;
+    min-width: 80px;
+  }
 
-table td .action svg {
-    vertical-align: middle;
-}
-
-table td .badge {
-    padding: 3px;
-    border-radius: 3px;
-    color: #FFF
-}
-
-.btn-more{
-    margin: 1.5em 0;
-    padding: .5em 1em;
+  .table-container img {
+    width: 35px;
     height: 35px;
-    border: 0;
-    border-radius: 5px;
-    background-color: #181c2e;
-    color: #FFF;
-    font-size: 1.1em;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  /* Ícones no cabeçalho */
+.icon-wrapper {
+    background-color: #754FFE; /* Cor roxa */
+    color: white; /* Cor do ícone */
+    padding: 6px;
+    border-radius: 50%;
+    margin-left: 8px; /* Espaçamento entre ícones */
+    cursor: pointer;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .icon-wrapper:hover {
+    opacity: 0.8; /* Efeito de hover */
+  }
+  
+  .modal-body-container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap; /* Permitir que o layout se ajuste em telas menores */
+  }
+  
+  .modal-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .column-1 .modal-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centralizando a imagem do avatar em relação ao título */
+  }
+  
+  .column-3{
+    gap: 10px;
+    align-items: center;
+  }
+  
+  .modal-title {
+    color: #1E293B; /* Cor do título */
+    font-size: 14px;
+    font-weight: bold;
+  }
+  
+  .modal-info {
+    color: #754FFE; /* Cor do conteúdo */
+    font-size: 18px;
+  }
+  
+  .avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-top: 10px; /* Imagem abaixo do Criado Por */
+  }
+  
+  .priority-status {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 7px; 
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    width: fit-content;
+  }
+  
+/* Estilo para Prioridade dentro do Modal */
+.modal-body-container .priority-urgente {
+  background-color: #FF686B; /* Urgente */
+  color: white;
+  border-radius: 7px;
+  padding: 4px 12px;
+  display: inline-block;
+  text-align: center;
+  min-width: 80px;
+}
+
+.modal-body-container .priority-media {
+  background-color: #FAFF68; /* Média */
+  color: black;
+  border-radius: 7px;
+  padding: 4px 12px;
+  display: inline-block;
+  text-align: center;
+  min-width: 80px;
+}
+
+.modal-body-container .priority-baixa {
+  background-color: #68FF6D; /* Baixa */
+  color: black;
+  border-radius: 7px;
+  padding: 4px 12px;
+  display: inline-block;
+  text-align: center;
+  min-width: 80px;
+}
+
+/* Estilo para Status dentro do Modal */
+.modal-body-container .status-aberto {
+  background-color: #5C71F9; /* Aberto */
+  color: white;
+  border-radius: 7px;
+  padding: 4px 12px;
+  display: inline-block;
+  text-align: center;
+  min-width: 80px;
+}
+
+.modal-body-container .status-atendimento {
+  background-color: #68FF6D; /* Atendimento */
+  color: black;
+  border-radius: 7px;
+  padding: 4px 12px;
+  display: inline-block;
+  text-align: center;
+  min-width: 80px;
+}
+
+.modal-body-container .status-reaberto {
+  background-color: #FF686B; /* Reaberto */
+  color: white;
+  border-radius: 7px;
+  padding: 4px 12px;
+  display: inline-block;
+  text-align: center;
+  min-width: 80px;
 }
 
 @media screen and (max-width: 600px) {
+    
+    .btn-container{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
     table{
         border: 0
     }
