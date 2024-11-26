@@ -264,6 +264,10 @@
     width: fit-content;
   }
   
+  .description{
+    color: black;
+  }
+
 /* Estilo para Prioridade dentro do Modal */
 .modal-body-container .priority-alta {
   background-color: #FF686B; /* Urgente */

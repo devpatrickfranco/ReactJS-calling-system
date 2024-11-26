@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom';
 import { Table, Pagination, Modal, Button } from "react-bootstrap"; // Componentes do Bootstrap
 import { toast } from "react-toastify";
 import { FaSearch } from "react-icons/fa";
@@ -10,7 +10,7 @@ import Header from "../../components/Header";
 import Title from "../../components/Title";
 import { AuthenticateContext } from "../../contexts/authenticate";
 import { dbFirebase } from "../../services/firebaseConnection";
-import avatar from '../../assets/avatar.jpg'
+import avatar from '../../assets/avatar.jpg';
 
 import "./dashboard.css";
 
@@ -22,25 +22,41 @@ export default function Dashboard() {
   const [showModalSearch, setShowModalSearch] = useState(false);
   const [showModalEdit, setShowModalEdit] = useState(false);
   const [selectedChamado, setSelectedChamado] = useState(null); // Estado para armazenar o chamado selecionado
-  const { user } = useContext(AuthenticateContext);
+  const [userProfiles, setUserProfiles] = useState({}); // Estado para armazenar imagens de perfil
+  const { hasPermission, user } = useContext(AuthenticateContext); // Dados do usuário autenticado
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  
-  const handleOpenModalSearch = (chamado) => {
-    setSelectedChamado(chamado); // Armazena o chamado selecionado
-    setShowModalSearch(true); // Abre o modal de pesquisa
-  };
+  // Carregar a imagem de perfil do usuário
+  useEffect(() => {
+    async function loadUserProfile() {
+      try {
+        const userProfileDoc = await dbFirebase.firestore()
+          .collection('users')
+          .doc(user.uid)
+          .get();
 
-  const handleEditChamado = (id) => {
-    navigate(`/new/${id}`); // Redireciona para a página de edição com o ID
-  };
+        if (userProfileDoc.exists) {
+          const userData = userProfileDoc.data();
+          setUserProfiles((prevProfiles) => ({
+            ...prevProfiles,
+            [user.uid]: userData.imgProfile || avatar, // Se imgProfile for null, usa o avatar
+          }));
+        }
+      } catch (error) {
+        console.error("Erro ao carregar o perfil do usuário:", error);
+        toast.error("Erro ao carregar o perfil do usuário.");
+      }
+    }
+
+    loadUserProfile();
+  }, [user.uid]);
 
   // Carregar chamados com filtro e ordenar por data decrescente
   useEffect(() => {
     async function loadChamados() {
       try {
-        const snapshot = await dbFirebase.firestore().collection("chamados").orderBy("created", "desc").get(); // Ordenação decrescente
+        const snapshot = await dbFirebase.firestore().collection("chamados").orderBy("created", "desc").get();
         const list = snapshot.docs
           .map((doc) => ({ id: doc.id, ...doc.data() }))
           .filter(
@@ -70,6 +86,46 @@ export default function Dashboard() {
     setCurrentPage(pageNumber);
   };
 
+  const handleOpenModalSearch = (chamado) => {
+    setSelectedChamado(chamado); // Armazena o chamado selecionado
+    setShowModalSearch(true); // Abre o modal de pesquisa
+  };
+
+  const handleEditChamado = (id) => {
+    navigate(`/new/${id}`); // Redireciona para a página de edição com o ID
+  };
+
+  // Função para iniciar o atendimento
+  const startAtendimento = async (chamadoId) => {
+    try {
+      // Atualiza o status para 'Atendimento' e adiciona o atendente
+      await dbFirebase.firestore().collection('chamados').doc(chamadoId).update({
+        status: 'Atendimento',
+        atendidoPor: user.uid, // Adiciona o ID do usuário que iniciou o atendimento
+      });
+
+      // Atualiza o chamado na tabela local
+      setChamados((prevChamados) =>
+        prevChamados.map((chamado) =>
+          chamado.id === chamadoId
+            ? { ...chamado, status: 'Atendimento', atendidoPor: user.uid }
+            : chamado
+        )
+      );
+
+      // Exibe a imagem do atendente (a partir do userProfiles)
+      setUserProfiles((prevProfiles) => ({
+        ...prevProfiles,
+        [user.uid]: user.imgProfile || avatar,
+      }));
+
+      toast.success("Atendimento iniciado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao iniciar atendimento:", error);
+      toast.error("Erro ao iniciar atendimento.");
+    }
+  };
+
 
   return (
     <div>
@@ -80,162 +136,172 @@ export default function Dashboard() {
         </Title>
 
         <div className="btn-container">
-          <button className="new-btn" onClick={() => navigate('/new')} > NOVO CHAMADO</button>
-          <button className="close-btn" onClick={() => navigate('/resolved')} > CHAMADOS RESOLVIDOS</button>
+          <button className="new-btn" onClick={() => navigate('/new')}> NOVO CHAMADO</button>
+          <button className="close-btn" onClick={() => navigate('/resolved')}> CHAMADOS RESOLVIDOS</button>
         </div>
 
         <div className="container table-container">
-      <Table className="table" hover>
-        <thead>
-          <tr>
-            <th>CÓDIGO</th>
-            <th>CATEGORIA</th>
-            <th>SUB</th>
-            <th>SOLICITANTE</th>
-            <th>PRIORIDADE</th>
-            <th>STATUS</th>
-            <th>ATENDENTE</th>
-            <th>
-              #{" "}
-              {/* Ícones */}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredChamados.length ? (
-            filteredChamados.map((chamado) => (
-              <tr key={chamado.id}>
-                <td>{chamado.codigo}</td>
-                <td>{chamado.category}</td>
-                <td>{chamado.subcategory}</td>
-                <td><img src={avatar} alt="Avatar" /></td>
-                <td>
-                  <span
-                    className={`prioridade-${chamado.prioridade.toLowerCase()}`}
-                  >
-                    {chamado.prioridade}
-                  </span>
-                </td>
-                <td>
-                  <span className={`status-${chamado.status.toLowerCase()}`}>
-                    {chamado.status}
-                  </span>
-                </td>
-                <td><img src={avatar} alt="Avatar" /></td>
-                <td> 
-                  {/* Passa o chamado selecionado para o modal */}
-                  <span
-                    className="icon-wrapper"
-                    onClick={() => handleOpenModalSearch(chamado)} // Passa o chamado para o modal de pesquisa
-                  >
-                    <FaSearch />
-                  </span>
-                  <span
-                    className="icon-wrapper"
-                    onClick={() => handleEditChamado(chamado.id)} // Passa o chamado para o modal de edição
-                  >
-                    <CiEdit />
-                  </span>
-                </td>
+          <Table className="table" hover>
+            <thead>
+              <tr>
+                <th>CÓDIGO</th>
+                <th>CATEGORIA</th>
+                <th>SUB</th>
+                <th>SOLICITANTE</th>
+                <th>PRIORIDADE</th>
+                <th>STATUS</th>
+                <th>ATENDENTE</th>
+                <th>#</th>
               </tr>
-            ))  
-          ) : (
-            <tr>
-              <td colSpan="8">Nenhum chamado encontrado.</td>
-            </tr>
-          )}
-        </tbody>
-      </Table>
+            </thead>
+            <tbody>
+              {filteredChamados.length ? (
+                filteredChamados.map((chamado) => (
+                  <tr key={chamado.id}>
+                    <td>{chamado.codigo}</td>
+                    <td>{chamado.category}</td>
+                    <td>{chamado.subcategory}</td>
+                    <td>
+                    <img 
+                      src={userProfiles[chamado.criadoPor] || avatar} 
+                      alt="Avatar" 
+                      className="avatar" 
+                    />
+                    </td>
+                    <td>
+                      <span className={`prioridade-${chamado.prioridade.toLowerCase()}`}>
+                        {chamado.prioridade}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`status-${chamado.status.toLowerCase()}`}>
+                        {chamado.status}
+                      </span>
+                    </td>
+                    <td>
+                        {chamado.atendidoPor ? (
+                          <img
+                            src={userProfiles[chamado.atendidoPor] || avatar} // Exibe a imagem do atendente ou o avatar padrão
+                            alt="Atendente"
+                            className="avatar"
+                            style={{ width: 40, height: 40, borderRadius: '50%' }}
+                          />
+                        ) : (
+                          <span>Nenhum atendente</span> // Se não tiver atendente, exibe um texto informando
+                        )}
+                      </td>
+                    <td>
+                      <span
+                        className="icon-wrapper"
+                        onClick={() => handleOpenModalSearch(chamado)}
+                      >
+                        <FaSearch />
+                      </span>
+                      <span
+                        className="icon-wrapper"
+                        onClick={() => handleEditChamado(chamado.id)}
+                      >
+                        <CiEdit />
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="8">Nenhum chamado encontrado.</td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
 
-      {/* Modal para Pesquisa */}
-      <Modal size={'lg'} show={showModalSearch} onHide={() => setShowModalSearch(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>CHAMADO # {selectedChamado?.codigo}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-  <div className="modal-body-container">
-    {/* Coluna 1 - Criado Por e Avatar */}
-    <div className="modal-column column-1">
-      <div className="modal-item">
-        <h5 className="modal-title">Criado Por:</h5>
-      </div>
-      <div className="modal-item">
-        <img src={avatar} alt="Avatar" className="avatar" />
-      </div>
-    </div>
+          {/* Modal de pesquisa */}
+          <Modal size={'lg'} show={showModalSearch} onHide={() => setShowModalSearch(false)}>
+            <Modal.Header closeButton>
+              <Modal.Title>CHAMADO # {selectedChamado?.codigo}</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <div className="modal-body-container">
+                {/* Coluna 1 - Criado Por e Avatar */}
+                <div className="modal-column column-1">
+                  <div className="modal-item">
+                    <h5 className="modal-title">Criado Por:</h5>
+                  </div>
+                  <div className="modal-item">
+                    <img src={userProfiles[selectedChamado?.criadoPor] || avatar} alt="Avatar" className="avatar" />
+                  </div>
+                </div>
 
-    {/* Coluna 2 - Categoria, Subcategoria e Aberto em */}
-    <div className="modal-column column-2">
-      <div className="modal-item">
-        <h5 className="modal-title">Categoria:</h5>
-        <p className="modal-info">{selectedChamado?.category}</p>
-      </div>
-      <div className="modal-item">
-        <h5 className="modal-title">Sub:</h5>
-        <p className="modal-info">{selectedChamado?.subcategory}</p>
-      </div>
-      <div className="modal-item">
-        <h5 className="modal-title">Aberto em:</h5>
-        <p className="modal-info">
-          {new Date(selectedChamado?.created?.seconds * 1000).toLocaleString()}
-        </p>
-      </div>
-    </div>
+                {/* Coluna 2 - Categoria, Subcategoria e Aberto em */}
+                <div className="modal-column column-2">
+                  <div className="modal-item">
+                    <h5 className="modal-title">Categoria:</h5>
+                    <p className="modal-info">{selectedChamado?.category}</p>
+                  </div>
+                  <div className="modal-item">
+                    <h5 className="modal-title">Sub:</h5>
+                    <p className="modal-info">{selectedChamado?.subcategory}</p>
+                  </div>
+                  <div className="modal-item">
+                    <h5 className="modal-title">Aberto em:</h5>
+                    <p className="modal-info">
+                      {new Date(selectedChamado?.created?.seconds * 1000).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
 
-    {/* Coluna 3 - Prioridade e Status */}
-    <div className="modal-column column-3">
-      <div className="modal-item">
-      <span className={`priority-${selectedChamado?.prioridade.toLowerCase()}`}>
-        {selectedChamado?.prioridade}
-      </span>
-      </div>
-      <div className="modal-item">
-        <span className={`status-${selectedChamado?.status.toLowerCase()}`}>
-          {selectedChamado?.status}
-        </span>
-      </div>
-    </div>
-  </div>
+                {/* Coluna 3 - Prioridade e Status */}
+                <div className="modal-column column-3">
+                  <div className="modal-item">
+                    <span className={`priority-${selectedChamado?.prioridade.toLowerCase()}`}>
+                      {selectedChamado?.prioridade}
+                    </span>
+                  </div>
+                  <div className="modal-item">
+                    <span className={`status-${selectedChamado?.status.toLowerCase()}`}>
+                      {selectedChamado?.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-  <div className="modal-item">
-    <h5 className="modal-title">Descrição:</h5>
-    <p className="modal-info" dangerouslySetInnerHTML={{ __html: selectedChamado?.complemento }} />
-  </div>
-</Modal.Body>
+              <div className="modal-item">
+                <h5 className="modal-title">Descrição:</h5>
+                <p className="modal-info description" dangerouslySetInnerHTML={{ __html: selectedChamado?.complemento }} />
+              </div>
+            </Modal.Body>
 
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModalSearch(false)}>
-            Fechar
-          </Button>
-        </Modal.Footer>
-      </Modal>
+            <Modal.Footer>
 
-      {/* Modal para Edição */}
-      <Modal show={showModalEdit} onHide={() => setShowModalEdit(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Editar Chamado # {selectedChamado?.codigo}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>Hello World</Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModalEdit(false)}>
-            Fechar
-          </Button>
-        </Modal.Footer>
-      </Modal>
+            {user && hasPermission(user, 'admin', 'superAdmin') && (
+              <Button
+                variant="primary"
+                onClick={async () => {
+                  await startAtendimento(selectedChamado.id);
+                }}
+              >
+                Iniciar Atendimento
+              </Button>
+            )}
 
+              <Button variant="secondary" onClick={() => setShowModalSearch(false)}>
+                Fechar
+              </Button>
+            </Modal.Footer>
+          </Modal>
+
+          {/* Paginação */}
           <Pagination>
             {[...Array(Math.ceil(chamados.length / itemsPerPage)).keys()].map((number) => (
               <Pagination.Item
                 key={number + 1}
                 active={number + 1 === currentPage}
                 onClick={() => handlePageChange(number + 1)}
-                style={{color: '#754FFE'}}
+                style={{ color: '#754FFE' }}
               >
                 {number + 1}
               </Pagination.Item>
             ))}
           </Pagination>
-
         </div>
       </div>
     </div>
