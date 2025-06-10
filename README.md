@@ -1,70 +1,167 @@
-# Getting Started with Create React App
+# Sistema de Gerenciamento de Chamados
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
+![Bootstrap](https://img.shields.io/badge/Bootstrap-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)
+![React Router](https://img.shields.io/badge/React_Router-CA4245?style=for-the-badge&logo=react-router&logoColor=white)
 
-## Available Scripts
+Um sistema completo de gerenciamento de chamados técnicos com múltiplos níveis de acesso, categorização, calendário de eventos e acompanhamento de status.
 
-In the project directory, you can run:
+![Dashboard Preview](https://via.placeholder.com/800x400?text=Dashboard+Preview)
 
-### `npm start`
+## 📋 Sobre o Projeto
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Este sistema foi desenvolvido para gerenciar chamados técnicos em uma organização, permitindo que usuários abram chamados, administradores gerenciem categorias e subcategorias, e superadministradores controlem todos os aspectos do sistema, incluindo usuários.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🚀 Tecnologias Utilizadas
 
-### `npm test`
+- **React** - Biblioteca JavaScript para construção de interfaces
+- **Firebase**
+  - Authentication - Autenticação de usuários
+  - Firestore - Banco de dados NoSQL
+  - Storage - Armazenamento de arquivos
+- **React Router** - Navegação entre páginas
+- **React Bootstrap** - Componentes estilizados
+- **React Toastify** - Notificações
+- **React Icons** - Ícones
+- **React Quill** - Editor de texto rico
+- **React Big Calendar** - Calendário de eventos
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🔧 Requisitos Funcionais
 
-### `npm run build`
+1. **Autenticação e Autorização**
+   - Login de usuários
+   - Diferentes níveis de acesso (superAdmin, admin, user)
+   - Logout
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+2. **Gerenciamento de Usuários**
+   - Cadastro de novos usuários
+   - Visualização de usuários por categoria (superAdmin, admin, user)
+   - Remoção de usuários
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+3. **Gerenciamento de Chamados**
+   - Abertura de novos chamados
+   - Edição de chamados existentes
+   - Visualização de chamados
+   - Filtro por status (aberto, atendimento, finalizado, reaberto)
+   - Detalhamento de chamados
+   - Reabertura de chamados finalizados
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+4. **Categorização**
+   - Criação de categorias
+   - Criação de subcategorias
+   - Atribuição de usuários a subcategorias
+   - Edição e exclusão de categorias e subcategorias
 
-### `npm run eject`
+5. **Calendário de Eventos**
+   - Visualização de eventos em calendário
+   - Criação de eventos
+   - Atribuição de eventos a usuários
+   - Definição de prioridade para eventos
+   - Exclusão de eventos
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+6. **Perfil de Usuário**
+   - Visualização de dados do perfil
+   - Atualização de nome
+   - Upload de foto de perfil
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 📊 Requisitos Não Funcionais
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+1. **Segurança**
+   - Autenticação via Firebase
+   - Controle de acesso baseado em papéis (RBAC)
+   - Proteção de rotas
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+2. **Usabilidade**
+   - Interface responsiva
+   - Feedback visual através de notificações
+   - Modais para confirmação de ações importantes
+   - Navegação intuitiva
 
-## Learn More
+3. **Performance**
+   - Carregamento otimizado de dados
+   - Paginação de resultados
+   - Feedback visual durante carregamentos (spinners)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+4. **Manutenibilidade**
+   - Código organizado em componentes
+   - Separação de responsabilidades
+   - Uso de hooks personalizados para lógica de negócio
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+5. **Escalabilidade**
+   - Estrutura de dados flexível no Firestore
+   - Componentes reutilizáveis
 
-### Code Splitting
+6. **Disponibilidade**
+   - Hospedagem em serviços cloud
+   - Persistência de dados no Firebase
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 📱 Páginas do Sistema
 
-### Analyzing the Bundle Size
+### Login
+Página de autenticação com campos para email e senha.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### Dashboard
+Visão geral dos chamados abertos, em atendimento e finalizados.
 
-### Making a Progressive Web App
+### Novo Chamado
+Formulário para abertura de novos chamados com seleção de categoria, subcategoria, prioridade e descrição.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Chamados Resolvidos
+Lista de chamados finalizados com opção de reabertura.
 
-### Advanced Configuration
+### Calendário
+Visualização e gerenciamento de eventos em formato de calendário.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### Categorias
+Gerenciamento de categorias e subcategorias, com atribuição de usuários.
 
-### Deployment
+### Usuários
+Gerenciamento de usuários do sistema, com diferentes níveis de acesso.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### Perfil
+Visualização e edição de informações do usuário logado.
 
-### `npm run build` fails to minify
+### Clientes
+Cadastro e gerenciamento de clientes.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 🔧 Instalação e Uso
+
+1. Clone o repositório:
+   \`\`\`
+   git clone https://github.com/seu-usuario/ReactJS-calling-system.git
+   \`\`\`
+
+2. Instale as dependências:
+   \`\`\`
+   cd ReactJS-calling-system
+   npm install
+   \`\`\`
+
+3. Configure o Firebase:
+   - Crie um projeto no Firebase
+   - Ative Authentication, Firestore e Storage
+   - Copie as credenciais para o arquivo src/services/firebaseConnection.js
+
+4. Execute o projeto:
+   \`\`\`
+   npm start
+   \`\`\`
+
+## 🔐 Níveis de Acesso
+
+- **superAdmin**: Acesso total ao sistema, incluindo gerenciamento de usuários, categorias e chamados
+- **admin**: Acesso ao atendimento de chamados, gerenciamento de categorias e eventos
+- **user**: Acesso à abertura de chamados e visualização de seus próprios chamados
+
+## 📝 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## 👨‍💻 Autor
+
+Desenvolvido por [Patrick Franco](https://github.com/devpatrickfranco)
+
+---
+
+⭐️ Feito com ❤️ por [Patrick Franco](https://github.com/devpatrickfranco)
